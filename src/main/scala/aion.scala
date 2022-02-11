@@ -37,7 +37,7 @@ object aion extends App:
         case Insert(setName, value) => {
           val evaluatedSetName = setName.evaluate
           val evaluatedValue = value.evaluate
-          if (evaluatedSetName.asInstanceOf[Boolean]){
+          if (evaluatedSetName != null){
             bindingScope.update(evaluatedSetName, evaluatedSetName.asInstanceOf[Set[Any]] += evaluatedValue)
           }
           else{
@@ -52,17 +52,56 @@ object aion extends App:
         case Union(setName1, setName2) => {
           val set1 = setName1.evaluate.asInstanceOf[Set[Any]]
           val set2 = setName2.evaluate.asInstanceOf[Set[Any]]
-          set1.union(set2)
+          if ((set1 != null) && (set2 != null)){
+            set1.union(set2)
+          }
+          else{
+            if (set1 == null){
+              logger.error(s"Name $setName1 not assigned.")
+            }
+            else if (set2 == null){
+              logger.error(s"Name $setName1 not assigned.")
+            }
+            else{
+              logger.error("Unexpected error occured. Please check documentation.")
+            }
+          }
         }
         case Intersect(setName1, setName2) => {
           val set1 = setName1.evaluate.asInstanceOf[Set[Any]]
           val set2 = setName2.evaluate.asInstanceOf[Set[Any]]
-          set1.intersect(set2)
+          if ((set1 != null) && (set2 != null)){
+            set1.intersect(set2)
+          }
+          else{
+            if (set1 == null){
+              logger.error(s"Name $setName1 not assigned.")
+            }
+            else if (set2 == null){
+              logger.error(s"Name $setName1 not assigned.")
+            }
+            else{
+              logger.error("Unexpected error occured. Please check documentation.")
+            }
+          }
         }
         case Difference(setName1, setName2) => {
           val set1 = setName1.evaluate.asInstanceOf[Set[Any]]
           val set2 = setName2.evaluate.asInstanceOf[Set[Any]]
-          set1.diff(set2)
+          if ((set1 != null) && (set2 != null)) {
+            set1.diff(set2)
+          }
+          else{
+            if (set1 == null){
+              logger.error(s"Name $setName1 not assigned.")
+            }
+            else if (set2 == null){
+              logger.error(s"Name $setName1 not assigned.")
+            }
+            else{
+              logger.error("Unexpected error occured. Please check documentation.")
+            }
+          }
         }
         case Macro(macroName, operand) => {
           val MacroNameEval = macroName.evaluate
@@ -96,16 +135,19 @@ object aion extends App:
 //    MacroEval(Val("InsertIntoBobby1000")).evaluate
 //    println(Var("Bobby").evaluate)
 
-
+    Assign("Set1", Val(Set())).evaluate
+    Assign("Set2", Val(Set())).evaluate
     Insert(Var("Set1"), Val(1)).evaluate
-//    Insert(Var("Set1"), Val(2)).evaluate
-//    Insert(Var("Set1"), Val(3)).evaluate
-//    Insert(Var("Set2"), Val(2)).evaluate
-//    Insert(Var("Set2"), Val(3)).evaluate
-//    Insert(Var("Set2"), Val(4)).evaluate
-//
-//    println((Var("Amey").evaluate))
-//    println((Var("Bobby").evaluate))
-//    println(Difference(Var("Amey"), Var("Bobby")).evaluate)
-//    println(Difference(Var("Bobby"), Var("Amey")).evaluate)
+    Insert(Var("Set1"), Val(2)).evaluate
+    Insert(Var("Set1"), Val(3)).evaluate
+    Insert(Var("Set2"), Val(2)).evaluate
+    Insert(Var("Set2"), Val(3)).evaluate
+    Insert(Var("Set2"), Val(4)).evaluate
+
+    println((Var("Set1").evaluate))
+    println((Var("Set2").evaluate))
+    println(Difference(Var("Set1"), Var("Set2")).evaluate)
+    println(Difference(Var("Set2"), Var("Set1")).evaluate)
+    println(Difference(Var("Amey"), Var("Bobby")).evaluate)
+    println(Difference(Var("Bobby"), Var("Amey")).evaluate)
 
