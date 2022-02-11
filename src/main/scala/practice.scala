@@ -1,6 +1,9 @@
 object practice extends App{
   @main def runAion: Unit = {
+    println("Amey")
+  }
 
+}
 
 
 
@@ -28,7 +31,6 @@ object practice extends App{
 //    val a: Set[Any] = dictionary("a")
 //    dictionary += ("a" -> (dictionary("a") ++ (Set("Kasbe"))))
 //    println(dictionary)
-  }
 
 
 
@@ -54,7 +56,18 @@ object practice extends App{
 // evaluate is not a member of Any -> Change Any to Exp in definition and declaration
 
 
-}
+  //        case printMap() => bindingScope
+  //        case Union(setName1, setName2) => {
+  //          val set1 = setName1.evaluate.asInstanceOf[Set[Any]]
+  //          val set2 = setName2.evaluate.asInstanceOf[Set[Any]]
+  //          bindingScope(setName1).asInstanceOf[Set[Any]].union(bindingScope(setName2).asInstanceOf[Set[Any]])
+  //        }
+  //        case Intersect(setName1, setName2) => {
+  //          bindingScope(setName1).asInstanceOf[Set[Any]].intersect(bindingScope(setName2).asInstanceOf[Set[Any]])
+  //        }
+  //        case Check(setName, element) => {
+  //
+  //        }
 
 
 
