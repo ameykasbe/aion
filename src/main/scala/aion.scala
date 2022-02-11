@@ -3,7 +3,6 @@ import scala.collection.mutable.Map
 import scala.collection.mutable.Set
 object aion extends App:
   private var bindingScope: scala.collection.mutable.Map[Any, Any] = Map()
-
   enum Exp:
     case Val(value: Any)
     case Var(name: String)
@@ -14,11 +13,6 @@ object aion extends App:
     case Union(setName1: Exp, setName2: Exp)
     case Intersect(setName1: Exp, setName2: Exp)
 
-
-    //    case getMap()
-//    case printMap()
-//    case Intersect(setName1: String, setName2: String)
-//    case Check(setName: String, element: Any)
 
     def evaluate: Any =
       this.match{
