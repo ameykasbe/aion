@@ -1,11 +1,33 @@
 object practice extends App{
   @main def runAion: Unit = {
-    var dictionary: Map[String, Set[Any]] = Map()
-    dictionary += ("a" -> Set("Amey"))
 
-    val a: Set[Any] = dictionary("a")
-    dictionary += ("a" -> (dictionary("a") ++ (Set("Kasbe"))))
-    println(dictionary)
+
+
+
+
+
+    // Earlier assign
+//    case Assign(name, value) => {
+//      if (bindingScope.contains(name)){
+//        val setInMap = bindingScope(name).asInstanceOf[Set[Any]] // If immutable set, converting to mutable set for ++ operator to append
+//        bindingScope += (name -> (setInMap ++ Set(value)))
+//      }
+//      else {
+//        bindingScope += (name -> Set(value))
+//      }
+//    }
+
+
+
+
+//    println("Amey".asInstanceOf[Set[Any]])
+
+//    var dictionary: Map[String, Set[Any]] = Map()
+//    dictionary += ("a" -> Set("Amey"))
+//
+//    val a: Set[Any] = dictionary("a")
+//    dictionary += ("a" -> (dictionary("a") ++ (Set("Kasbe"))))
+//    println(dictionary)
   }
 
 
