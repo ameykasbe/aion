@@ -1,6 +1,9 @@
+import org.slf4j.{Logger, LoggerFactory}
 object practice extends App{
   @main def runAion: Unit = {
-    println("Amey")
+    val logger: Logger = LoggerFactory.getLogger(this.getClass.getSimpleName)
+    logger.info("Created ActorSystem and ActorMaterializer instances.")
+
   }
 
 }
