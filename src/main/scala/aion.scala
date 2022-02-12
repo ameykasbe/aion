@@ -29,8 +29,8 @@ object aion:
     case Difference(setName1: Expression, setName2: Expression) // Returns the difference of a set
     case SymmetricDifference(setName1: Expression, setName2: Expression) // Returns the symmetric difference of a set
     case CrossProduct(setName1: Expression, setName2: Expression) // Returns the cross product of a set
-    case Macro(macroName: Expression, operand: Expression) // Creates a Macro
-    case MacroEval(macroName: Expression) // Evaluates a Macro
+    case Macro(macroName: String, operand: Expression) // Creates a Macro
+    case MacroEval(macroName: String) // Evaluates a Macro
 
     def evaluate: BasicType =
     // Evaluates an expression.
@@ -245,15 +245,13 @@ object aion:
         // An operation is mapped to a variable.
         // Only Macro is being created, not evaluated.
         case Macro(macroName, operation) => {
-          val MacroNameEval = macroName.evaluate
-          bindingScope += (MacroNameEval -> operation)
+          bindingScope += (macroName -> operation)
         }
 
         // Evaluates a Macro
         // Macro is executed here only. This is lazy evaluation.
         case MacroEval(macroName) => {
-          val macroNameEval = macroName.evaluate
-          val returnIfAny = bindingScope(macroNameEval).asInstanceOf[Expression].evaluate
+          val returnIfAny = bindingScope(macroName).asInstanceOf[Expression].evaluate
           returnIfAny
         }
 
@@ -263,6 +261,13 @@ object aion:
     // Main function
     // Importing all expressions
     import Expression.*
+
+    Assign("Set1", Val(Set(1))).evaluate
+    Assign("Set2", Val(Set(2))).evaluate
+
+    Macro("macro1", Union(Var("Set1"), Var("Set2"))).evaluate
+    println(MacroEval("macro1").evaluate)
+
 
 
 
