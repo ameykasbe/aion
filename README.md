@@ -1,6 +1,5 @@
 # AION
 ## Domain Specific Language for Set Operations 
-## Due Date: 12-Feb-2022 11:59PM
 ### Name Amey Kasbe
 #### UIN 674285381
 #### Email akasbe2@uic.edu
@@ -275,6 +274,7 @@ The intention of the project is to create a Domain Specific Language (DSL) for u
 
 
 ## Semantics
+#### TODOS
 * How are we binding variables to values?
 * How to use language with tons of examples.
 * Insert, delete etc. Need a set to be present in memory to add. Else error message is diplayed.
