@@ -24,6 +24,7 @@ object aion:
     case Var(name: String) // A variable
     case Assign(name:BasicType, value: Expression) // Maps a variable to an expression
     case Insert(setToInsert: Expression, value: Expression*) // Inserts a number of DSL expressions into a set
+    case Check(setName: Expression, value: Expression) // Checks if a value is present in a set. Returns a boolean
     case Delete(setToInsert: Expression, value: Expression) // Deletes an DSL expression from a set
     case Union(setName1: Expression, setName2: Expression) // Returns the union of sets
     case Intersect(setName1: Expression, setName2: Expression) // Returns the intersection of a set
@@ -72,6 +73,24 @@ object aion:
             logger.error(s"Name $setName not assigned.")
             System.exit(1)
           }
+        }
+        // Checks if a value is present in a set.
+        // Returns a boolean if the value is present.
+        case Check(setName, value) => {
+          val evaluatedSetName = setName.evaluate
+          val evaluatedValue = value.evaluate
+          if (evaluatedSetName == null || evaluatedSetName.isInstanceOf[BoxedUnit]){
+            logger.error(s"Name $setName not assigned.")
+            System.exit(1)
+          }
+          if (!evaluatedSetName.isInstanceOf[Set[Any]]){
+            logger.error(s"Name $setName is not a set.")
+            System.exit(1)
+          }
+          if (evaluatedSetName.asInstanceOf[Set[BasicType]].contains(evaluatedValue)){
+            return true
+          }
+          return false
         }
 
         // Deletes an DSL expression from a set.
@@ -219,19 +238,27 @@ object aion:
 //    MacroEval(Val("InsertIntoBobby1000")).evaluate
 //    println(Var("Bobby").evaluate)
 //
-    Assign("Set1", Val(Set())).evaluate
-    Assign("Set2", Val(Set())).evaluate
-    Insert(Var("Set1"), Val(1)).evaluate
-    Insert(Var("Set1"), Val(2)).evaluate
-    Insert(Var("Set1"), Val(3)).evaluate
-    Insert(Var("Set2"), Val(2)).evaluate
-    Insert(Var("Set2"), Val(3)).evaluate
-    Insert(Var("Set2"), Val(4)).evaluate
-    Insert(Var("Set2"), Val(2), Val(6), Val(7)).evaluate
-    println(Var("Set1").evaluate)
-    println(Var("Set2").evaluate)
-    println(Union(Difference(Var("Set1"), (Var("Set2"))), Difference(Var("Set2"), (Var("Set1"))) ).evaluate)
+//    Assign("Set1", Val(Set())).evaluate
+//    Assign("Set2", Val(Set())).evaluate
+//    Insert(Var("Set1"), Val(1)).evaluate
+//    Insert(Var("Set1"), Val(2)).evaluate
+//    Insert(Var("Set1"), Val(3)).evaluate
+//    Insert(Var("Set2"), Val(2)).evaluate
+//    Insert(Var("Set2"), Val(3)).evaluate
+//    Insert(Var("Set2"), Val(4)).evaluate
+//    Insert(Var("Set2"), Val(2), Val(6), Val(7)).evaluate
+//    println(Var("Set1").evaluate)
+//    println(Var("Set2").evaluate)
+//    println(Union(Difference(Var("Set1"), (Var("Set2"))), Difference(Var("Set2"), (Var("Set1"))) ).evaluate)
 
+//    Assign("Set1", Val(Set())).evaluate
+//    Insert(Var("Set1"), Val(1)).evaluate
+//    println(Check(Var("Set1"), Val(1)).evaluate)
+//    println(Check(Var("Set1"), Val(2)).evaluate)
+//    println(Check(Var("Set2"), Val(3)).evaluate)
+
+//    Assign("Intger1", Val(1)).evaluate
+//    println(Check(Var("Intger1"), Val(3)).evaluate)
 
 
 //    println((Var("Set1").evaluate))
