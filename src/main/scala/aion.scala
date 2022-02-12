@@ -173,12 +173,14 @@ object aion extends App:
 
         // Creates a Macro.
         // An operation is mapped to a variable.
+        // Only Macro is being created, not evaluated.
         case Macro(macroName, operation) => {
           val MacroNameEval = macroName.evaluate
           bindingScope += (MacroNameEval -> operation)
         }
 
         // Evaluates a Macro
+        // Macro is executed here only. This is lazy evaluation.
         case MacroEval(macroName) => {
           val macroNameEval = macroName.evaluate
           val returnIfAny = bindingScope(macroNameEval).asInstanceOf[Expression].evaluate
@@ -191,6 +193,9 @@ object aion extends App:
     // Main function
     // Importing all expressions
     import Expression.*
+
+    // Write your code here.
+
 //    Assign("Amey", Val(Set(1))).evaluate
 //    Insert(Var("Amey"), Val(2)).evaluate
 //
