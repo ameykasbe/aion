@@ -5,11 +5,14 @@ import scala.collection.mutable.Set
 import org.slf4j.{Logger, LoggerFactory}
 import scala.runtime.BoxedUnit
 
-object aion extends App:
+object aion:
   // Creating a private HashMap to store and map variables to values.
   // Represents memory of the DSL.
   // Explanation for var: Used a mutable variable instead of a immutable object because if a immutable object is used, once instantiated, can not accept any more DSL variable and value pair to store. If bindingScope is an immutable object, For every DSL variable, a new object would have to created, defeating the purpose of the language.
-  private var bindingScope: scala.collection.mutable.Map[Any, Any] = Map()
+  private var bindingScope: scala.collection.mutable.Map[BasicType, BasicType] = Map()
+
+  // Define BasicType
+  type BasicType = Any
 
   // Creating a logger instance to log events
   val logger: Logger = LoggerFactory.getLogger(this.getClass.getSimpleName)
@@ -17,9 +20,9 @@ object aion extends App:
   enum Expression:
     // Expression enum. Representing all the functionalies of DSL - Constant, Variable, expressions etc.
     // In the documentation and comments, "expression" denotes a constant, variable or any other expression from the Expression enum
-    case Val(value: Any) // A constant
+    case Val(value: BasicType) // A constant
     case Var(name: String) // A variable
-    case Assign(name:Any, value: Expression) // Maps a variable to an expression
+    case Assign(name:BasicType, value: Expression) // Maps a variable to an expression
     case Insert(setToInsert: Expression, value: Expression*) // Inserts a number of DSL expressions into a set
     case Delete(setToInsert: Expression, value: Expression) // Deletes an DSL expression from a set
     case Union(setName1: Expression, setName2: Expression) // Returns the union of sets
@@ -30,7 +33,7 @@ object aion extends App:
     case Macro(macroName: Expression, operand: Expression) // Creates a Macro
     case MacroEval(macroName: Expression) // Evaluates a Macro
 
-    def evaluate: Any =
+    def evaluate: BasicType =
       // Evaluates an expression.
       this.match{
 
@@ -62,7 +65,7 @@ object aion extends App:
           if (evaluatedSetName != null || evaluatedSetName.isInstanceOf[BoxedUnit]){
             for {v <- value}{
               val evaluatedValue = v.evaluate
-              bindingScope.update(evaluatedSetName, evaluatedSetName.asInstanceOf[Set[Any]] += evaluatedValue)
+              bindingScope.update(evaluatedSetName, evaluatedSetName.asInstanceOf[Set[BasicType]] += evaluatedValue)
             }
           }
           else{
@@ -76,7 +79,7 @@ object aion extends App:
         case Delete(setName, value) => {
           val evaluatedSetName = setName.evaluate
           val evaluatedValue = value.evaluate
-          bindingScope.update(evaluatedSetName, evaluatedSetName.asInstanceOf[Set[Any]] -= evaluatedValue)
+          bindingScope.update(evaluatedSetName, evaluatedSetName.asInstanceOf[Set[BasicType]] -= evaluatedValue)
         }
 
         // Union of the sets A and B, denoted A ∪ B, is the set of all objects that are a member of A, or B, or both.
@@ -94,8 +97,8 @@ object aion extends App:
             logger.error(s"Name $setName2 not assigned.")
             System.exit(1)
           }
-          val set1 = set1Eval.asInstanceOf[Set[Any]]
-          val set2 = set2Eval.asInstanceOf[Set[Any]]
+          val set1 = set1Eval.asInstanceOf[Set[BasicType]]
+          val set2 = set2Eval.asInstanceOf[Set[BasicType]]
           set1.union(set2)
         }
 
@@ -114,8 +117,8 @@ object aion extends App:
             logger.error(s"Name $setName2 not assigned.")
             System.exit(1)
           }
-          val set1 = set1Eval.asInstanceOf[Set[Any]]
-          val set2 = set2Eval.asInstanceOf[Set[Any]]
+          val set1 = set1Eval.asInstanceOf[Set[BasicType]]
+          val set2 = set2Eval.asInstanceOf[Set[BasicType]]
           set1.intersect(set2)
         }
 
@@ -134,8 +137,8 @@ object aion extends App:
             logger.error(s"Name $setName2 not assigned.")
             System.exit(1)
           }
-          val set1 = set1Eval.asInstanceOf[Set[Any]]
-          val set2 = set2Eval.asInstanceOf[Set[Any]]
+          val set1 = set1Eval.asInstanceOf[Set[BasicType]]
+          val set2 = set2Eval.asInstanceOf[Set[BasicType]]
           set1.diff(set2)
         }
 
@@ -164,10 +167,10 @@ object aion extends App:
             logger.error(s"Name $setName2 not assigned.")
             System.exit(1)
           }
-          val set1 = set1Eval.asInstanceOf[Set[Any]]
-          val set2 = set2Eval.asInstanceOf[Set[Any]]
+          val set1 = set1Eval.asInstanceOf[Set[BasicType]]
+          val set2 = set2Eval.asInstanceOf[Set[BasicType]]
           val output = for {s1 <- set1; s2 <- set2} yield (s1,s2)
-          return output.asInstanceOf[Set[Any]]
+          return output.asInstanceOf[Set[BasicType]]
         }
 
 
@@ -193,8 +196,9 @@ object aion extends App:
     // Main function
     // Importing all expressions
     import Expression.*
-
     // Write your code here.
+
+
 
 //    Assign("Amey", Val(Set(1))).evaluate
 //    Insert(Var("Amey"), Val(2)).evaluate
@@ -214,7 +218,7 @@ object aion extends App:
 //    Macro(Val("InsertIntoBobby1000"), Insert(Var("Bobby"), Val(1000))).evaluate
 //    MacroEval(Val("InsertIntoBobby1000")).evaluate
 //    println(Var("Bobby").evaluate)
-
+//
     Assign("Set1", Val(Set())).evaluate
     Assign("Set2", Val(Set())).evaluate
     Insert(Var("Set1"), Val(1)).evaluate
