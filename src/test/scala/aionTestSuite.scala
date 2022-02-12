@@ -110,8 +110,8 @@ class aionTestSuite extends AnyFunSpec{
       Insert(Var("Set1"), Val(1), Val(2)).evaluate
       Assign("Set2", Val(Set())).evaluate
       Insert(Var("Set2"), Val(2), Val(3), Val(4)).evaluate
-      Macro(Val("macro1"), Union(Var("Set1"), Var("Set2"))).evaluate
-      assert(MacroEval(Val("macro1")).evaluate == Set(1, 2, 3, 4))
+      Macro("macro1", Union(Var("Set1"), Var("Set2"))).evaluate
+      assert(MacroEval("macro1").evaluate == Set(1, 2, 3, 4))
     }
   }
 
