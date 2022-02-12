@@ -1,6 +1,6 @@
 import org.scalatest.funspec.AnyFunSpec
 
-import scala.aion.Expression.*
+import aion.Expression.*
 import scala.collection.mutable.Set
 
 class aionTestSuite extends AnyFunSpec{
