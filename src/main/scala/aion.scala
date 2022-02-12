@@ -217,6 +217,8 @@ object aion:
     import Expression.*
     // Write your code here.
 
+//    Assign("Amey", Val(1)).a
+//    Assign(Var(""))
 
 
 //    Assign("Amey", Val(Set(1))).evaluate

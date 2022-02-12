@@ -115,62 +115,25 @@ class aionTestSuite extends AnyFunSpec{
     }
   }
 
+    // Test Case 12
+    describe("Check") {
+      it("should check if elements are present in a set") {
+        Assign("Set1", Val(Set())).evaluate
+        Insert(Var("Set1"), Val(1)).evaluate
+        assert(Check(Var("Set1"), Val(1)).evaluate == true)
+      }
+      it("should check if elements are absent in a set") {
+        Assign("Set1", Val(Set())).evaluate
+        Insert(Var("Set1"), Val(1)).evaluate
+        assert(Check(Var("Set1"), Val(2)).evaluate == false)
+      }
+
+    }
+
+
 
 
 
 
 
 }
-
-
-//  Insert(Var("Set1"), Val(1)).evaluate
-//
-//
-//  Assign("Set2", Val(Set())).evaluate
-//
-//  Insert(Var("Set1"), Val(2)).evaluate
-//  Insert(Var("Set1"), Val(3)).evaluate
-//  Insert(Var("Set2"), Val(2)).evaluate
-//  Insert(Var("Set2"), Val(3)).evaluate
-//  Insert(Var("Set2"), Val(4)).evaluate
-//  Insert(Var("Set2"), Val(2), Val(6), Val(7)).evaluate
-//  println(Var("Set1").evaluate)
-//  println(Var("Set2").evaluate)
-//  println(Union(Difference(Var("Set1"), (Var("Set2"))), Difference(Var("Set2"), (Var("Set1"))) ).evaluate)
-
-
-
-  //    println((Var("Set1").evaluate))
-  //    println((Var("Set2").evaluate))
-  //    println(Union(Var("Set1"), Var("Set2")).evaluate)
-  //    println(Union(Var("Set2"), Var("Set1")).evaluate)
-  //    println(Union(Var("Amey"), Var("Set1")).evaluate)
-  //    println(Union(Var("Amey"), Var("Amey2")).evaluate)
-
-  //    println(Intersect(Var("Set1"), Var("Set2")).evaluate)
-  //    println(Intersect(Var("Set2"), Var("Set1")).evaluate)
-  //    println(Intersect(Var("Amey"), Var("Set1")).evaluate)
-  //    println(Intersect(Var("Amey"), Var("Amey2")).evaluate)
-  //
-  //    println(Difference(Var("Set1"), Var("Set2")).evaluate)
-  //    println(Difference(Var("Set2"), Var("Set1")).evaluate)
-  //    println(Difference(Var("Amey"), Var("Set1")).evaluate)
-  //    println(Difference(Var("Amey"), Var("Amey2")).evaluate)
-  //
-  //    println(SymmetricDifference(Var("Set1"), Var("Set2")).evaluate)
-  //    println(SymmetricDifference(Var("Set2"), Var("Set1")).evaluate)
-  //    println(SymmetricDifference(Var("Amey"), Var("Set1")).evaluate)
-  //    println(SymmetricDifference(Var("Amey"), Var("Amey2")).evaluate)
-
-
-  //    println((Var("Set1").evaluate))
-  //    println((Var("Set2").evaluate))
-  //    println(CrossProduct(Var("Set1"), Var("Set2")).evaluate)
-  //    println(CrossProduct(Var("Set2"), Var("Set1")).evaluate)
-  //    println(CrossProduct(Var("Amey"), Var("Set1")).evaluate)
-  //    println(CrossProduct(Var("Bobby"), Var("Amey")).evaluate)
-
-
-
-
-
