@@ -473,6 +473,16 @@ There can not be an expression that evaluates to integerVariable's name integerV
     * and so on...
 
 
+### Nested expressions example
+  ```
+  Assign("Set1", Val(Set(1, 2, 3))).evaluate()
+  Assign("Set2", Val(Set(2, 3, 4))).evaluate()
+  Assign("Set3", Val(Set(10, 20, 30))).evaluate()
+  Assign("Set4", Val(Set(20, 30, 40))).evaluate()
+  println(Union(Union(Var("Set1"), Var("Set2")), Union(Var("Set3"), Var("Set4"))).evaluate())
+  ```
+  ```Output: Set(1, 2, 3, 4, 10, 20, 30, 40)```
+
 ## Files
 ### Source Code
 * Source code is present in `aion.scala`
