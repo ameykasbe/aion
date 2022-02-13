@@ -100,7 +100,14 @@ object aion:
             logger.error(s"Name $setName is not a set.")
             System.exit(1)
           }
-          bindingScope.update(evaluatedSetName, evaluatedSetName.asInstanceOf[Set[BasicType]] -= evaluatedValue)
+          if (evaluatedSetName.asInstanceOf[Set[BasicType]].contains(evaluatedValue)) {
+            return bindingScope.update(evaluatedSetName, evaluatedSetName.asInstanceOf[Set[BasicType]] -= evaluatedValue)
+          }
+          else{
+            logger.error(s"Name $setName does not contain $value.")
+            System.exit(1)
+          }
+
         }
 
         // Union of the sets A and B, denoted A ∪ B, is the set of all objects that are a member of A, or B, or both.
@@ -223,4 +230,7 @@ object aion:
 
     // WRITE YOUR CODE HERE
     // TEST SUITE IS PRESENT IN aionTestSuite.scala
+    Assign("set1", Val(Set(1, 2, 3))).evaluate
+    Delete(Var("set1"), Val(4)).evaluate
+    println(Var("set1").evaluate)
 
