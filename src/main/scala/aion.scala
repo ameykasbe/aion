@@ -46,6 +46,7 @@ object aion:
         // In the DSL, returning value from HashMap represents reading from memory location.
 
         // If scope is not global, before searching for bindings, the scope name is concatenated with the name and searched in the binding.
+        // If not found in a particular scope, the binding is searched in global. If not found there, error is displayed and program is executed.
         case Var(name) => {
           if (scopeName == "global") {
             if (bindingScope.contains(name)) {
@@ -62,8 +63,13 @@ object aion:
               bindingScope(varNameWScope)
             }
             else {
-              logger.error(s"Name $name not assigned in scope $scopeName.")
-              System.exit(1)
+              if (bindingScope.contains(name)) {
+                bindingScope(name)
+              }
+              else{
+                logger.error(s"Name $name not assigned in scope $scopeName or in global.")
+                System.exit(1)
+              }
             }
           }
         }
