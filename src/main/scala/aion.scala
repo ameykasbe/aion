@@ -40,8 +40,10 @@ object aion:
 
         // Var(value): `Var` is the variable datatype for the DSL.
         // `name` is string of language Scala.
-        // Evaluating the expression Var(name) returns the mapped value of Var(name) from HashMap. If there is no mapping of `name` in the HashMap, it returns `null`.
-        // In short, `name` in DSL represents the variable name in any language. `bindingScope` represents memory. In the DSL, returning value from HashMap represents reading from memory location.
+        // Evaluating the expression Var(name) returns the mapped value of Var(name) from HashMap.
+        // If there is no binding of `name` in the HashMap, it displays an error and exits the program.
+        // In short, `name` in DSL represents the variable name in any language. `bindingScope` represents memory.
+        // In the DSL, returning value from HashMap represents reading from memory location.
         case Var(name) => {
           if (bindingScope.contains(name)) {
             bindingScope(name)
@@ -64,10 +66,6 @@ object aion:
         // Inserts a number of DSL expressions into a set. First the expressions are evaluated and then inserted into the set. If the set does not exist in HashMap, error is displayed and program is exited.
         case Insert(setName, value*) => {
           val evaluatedSetName = setName.evaluate
-          if (evaluatedSetName == null || evaluatedSetName.isInstanceOf[BoxedUnit]) {
-            logger.error(s"Name $setName not assigned.")
-            System.exit(1)
-          }
           if (!evaluatedSetName.isInstanceOf[Set[Any]]) {
             logger.error(s"Name $setName is not a set.")
             System.exit(1)
@@ -83,10 +81,6 @@ object aion:
         case Check(setName, value) => {
           val evaluatedSetName = setName.evaluate
           val evaluatedValue = value.evaluate
-          if (evaluatedSetName == null || evaluatedSetName.isInstanceOf[BoxedUnit]) {
-            logger.error(s"Name $setName not assigned.")
-            System.exit(1)
-          }
           if (!evaluatedSetName.isInstanceOf[Set[Any]]) {
             logger.error(s"Name $setName is not a set.")
             System.exit(1)
@@ -102,10 +96,6 @@ object aion:
         case Delete(setName, value) => {
           val evaluatedSetName = setName.evaluate
           val evaluatedValue = value.evaluate
-          if (evaluatedSetName == null || evaluatedSetName.isInstanceOf[BoxedUnit]) {
-            logger.error(s"Name $setName not assigned.")
-            System.exit(1)
-          }
           if (!evaluatedSetName.isInstanceOf[Set[Any]]) {
             logger.error(s"Name $setName is not a set.")
             System.exit(1)
@@ -120,19 +110,12 @@ object aion:
         case Union(setName1, setName2) => {
           val set1Eval = setName1.evaluate
           val set2Eval = setName2.evaluate
-          if (set1Eval == null || set1Eval.isInstanceOf[BoxedUnit]) {
-            logger.error(s"Name $setName1 not assigned.")
-            System.exit(1)
-          }
+
           if (!set1Eval.isInstanceOf[Set[Any]]) {
             logger.error(s"Name $setName1 is not a set.")
             System.exit(1)
           }
 
-          if (set2Eval == null || set2Eval.isInstanceOf[BoxedUnit]) {
-            logger.error(s"Name $setName2 not assigned.")
-            System.exit(1)
-          }
           if (!set2Eval.isInstanceOf[Set[Any]]) {
             logger.error(s"Name $setName2 is not a set.")
             System.exit(1)
@@ -149,19 +132,11 @@ object aion:
         case Intersect(setName1, setName2) => {
           val set1Eval = setName1.evaluate
           val set2Eval = setName2.evaluate
-          if (set1Eval == null || set1Eval.isInstanceOf[BoxedUnit]) {
-            logger.error(s"Name $setName1 not assigned.")
-            System.exit(1)
-          }
           if (!set1Eval.isInstanceOf[Set[Any]]) {
             logger.error(s"Name $setName1 is not a set.")
             System.exit(1)
           }
 
-          if (set2Eval == null || set2Eval.isInstanceOf[BoxedUnit]) {
-            logger.error(s"Name $setName2 not assigned.")
-            System.exit(1)
-          }
           if (!set2Eval.isInstanceOf[Set[Any]]) {
             logger.error(s"Name $setName2 is not a set.")
             System.exit(1)
@@ -178,19 +153,11 @@ object aion:
         case Difference(setName1, setName2) => {
           val set1Eval = setName1.evaluate
           val set2Eval = setName2.evaluate
-          if (set1Eval == null || set1Eval.isInstanceOf[BoxedUnit]) {
-            logger.error(s"Name $setName1 not assigned.")
-            System.exit(1)
-          }
           if (!set1Eval.isInstanceOf[Set[Any]]) {
             logger.error(s"Name $setName1 is not a set.")
             System.exit(1)
           }
 
-          if (set2Eval == null || set2Eval.isInstanceOf[BoxedUnit]) {
-            logger.error(s"Name $setName2 not assigned.")
-            System.exit(1)
-          }
           if (!set2Eval.isInstanceOf[Set[Any]]) {
             logger.error(s"Name $setName2 is not a set.")
             System.exit(1)
@@ -217,19 +184,11 @@ object aion:
         case CrossProduct(setName1: Expression, setName2: Expression) => {
           val set1Eval = setName1.evaluate
           val set2Eval = setName2.evaluate
-          if (set1Eval == null || set1Eval.isInstanceOf[BoxedUnit]) {
-            logger.error(s"Name $setName1 not assigned.")
-            System.exit(1)
-          }
           if (!set1Eval.isInstanceOf[Set[Any]]) {
             logger.error(s"Name $setName1 is not a set.")
             System.exit(1)
           }
 
-          if (set2Eval == null || set2Eval.isInstanceOf[BoxedUnit]) {
-            logger.error(s"Name $setName2 not assigned.")
-            System.exit(1)
-          }
           if (!set2Eval.isInstanceOf[Set[Any]]) {
             logger.error(s"Name $setName2 is not a set.")
             System.exit(1)
