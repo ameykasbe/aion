@@ -263,10 +263,8 @@ object aion:
     // Importing all expressions
     import Expression.*
 
-    Assign("Set1", Val(Set(1))).evaluate
-    Assign("Set2", Val(Set(2))).evaluate
-
-    println(Union(Var("Set"), Var("Set2")).evaluate)
+    // WRITE YOUR CODE HERE
+    // TEST SUITE IS PRESENT IN aionTestSuite.scala
 
 
 
