@@ -256,3 +256,9 @@ object aion:
 
     // WRITE YOUR CODE HERE
     // TEST SUITE IS PRESENT IN aionTestSuite.scala
+
+    Assign("Set1", Val(Set(1, 2, 3))).evaluate()
+    Assign("Set2", Val(Set(2, 3, 4))).evaluate()
+    Assign("Set3", Val(Set(10, 20, 30))).evaluate()
+    Assign("Set4", Val(Set(20, 30, 40))).evaluate()
+    println(Union(Union(Var("Set1"), Var("Set2")), Union(Var("Set3"), Var("Set4"))).evaluate())
