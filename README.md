@@ -488,18 +488,30 @@ There can not be an expression that evaluates to integerVariable's name integerV
 * Source code is present in `aion.scala`
 * Test suite is present in `aionTestSuite.scala`
 
-## Unit testing procedure
+## Execution Procedure
 ### Using IntelliJ Idea
 1. Clone this repository.
 2. Import the project in IntelliJ Idea.
 3. Write your syntactically and semantically correct AION code in main method `runAion`of `aion.scala`.
-4. Run the `runAion` main method of `aion.scala` using IntelliJ Idea.
+4. Run the main method `runAion` of `aion.scala` using IntelliJ Idea.
+
+### By SBT run command
+1. Clone this repository.
+2. In terminal, navigate to root path.
+3. Write your syntactically and semantically correct AION code in main method `runAion`of `aion.scala`.
+4. Execute - <br>
+   `sbt clean compile run`
+
+## Unit testing procedure
+### Using IntelliJ Idea
+1. Clone this repository.
+2. Import the project in IntelliJ Idea.
+3. Run the `aionTestSuite` class of `aionTestSuite.scala` using IntelliJ Idea.
 
 ### By SBT test command
 1. Clone this repository.
-2. Write your syntactically and semantically correct AION code in main method `runAion`of `aion.scala`.
-3. In terminal, navigate to root path.
-4. Execute - <br>
+2. In terminal, navigate to root path.
+3. Execute - <br>
 `sbt clean compile test`
 
-  
+

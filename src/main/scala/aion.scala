@@ -256,8 +256,3 @@ object aion:
 
     // WRITE YOUR CODE HERE
     // TEST SUITE IS PRESENT IN aionTestSuite.scala
-
-    // COMMENT OUT CODE BELOW
-    Assign("Set1", Val(scala.collection.mutable.Set())).evaluate()
-    Insert(Var("Set1"), Val(1)).evaluate()
-    println(Var("Set1").evaluate() == scala.collection.mutable.Set(1))
