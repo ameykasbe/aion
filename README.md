@@ -60,10 +60,10 @@ The intention of the project is to create a Domain Specific Language (DSL) for u
                 <b>Assign(name, value)</b><br>
                 <i>
                 Examples - <br>
-                Assign("simpleVariable", Val(3)).evaluate <br>
-                Assign("simpleVariable", Val("someString")).evaluate <br>
-                Assign("simpleVariable", Val(Set(1,2,3)).evaluate <br>
-                Assign("simpleVariable", Val(Set()).evaluate <br>
+                Assign("simpleVariable", Val(3)).evaluate() <br>
+                Assign("simpleVariable", Val("someString")).evaluate() <br>
+                Assign("simpleVariable", Val(Set(1,2,3)).evaluate() <br>
+                Assign("simpleVariable", Val(Set()).evaluate() <br>
                 </i>
             </td>
             <td>
@@ -90,9 +90,9 @@ The intention of the project is to create a Domain Specific Language (DSL) for u
                 <b>Var(name)</b><br>
                 <i>
                 Examples - <br>
-                Var(integerVariable).evaluate <br>
-                Var(stringVariable).evaluate <br>
-                Var(setVariable).evaluate <br>
+                Var(integerVariable).evaluate() <br>
+                Var(stringVariable).evaluate() <br>
+                Var(setVariable).evaluate() <br>
                 </i>
             </td>
             <td>
@@ -116,10 +116,10 @@ The intention of the project is to create a Domain Specific Language (DSL) for u
             <i>Returns: null </i> 
             </td>
             <td>
-                <b>Insert(Var("name"), Val(value)*).evaluate</b><br>
+                <b>Insert(Var("name"), Val(value)*).evaluate()</b><br>
                 <i>
                 Examples - <br>
-                Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate
+                Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate()
                 </i>
             </td>
             <td>
@@ -133,10 +133,10 @@ The intention of the project is to create a Domain Specific Language (DSL) for u
         <tr>
             <td><b>Delete from set</b><br><i>Returns: null </i></td>
             <td>
-                <b>Delete(Var("name"), Val(value)).evaluate</b><br>
+                <b>Delete(Var("name"), Val(value)).evaluate()</b><br>
                 <i>
                     Examples - <br>
-                    Delete(Var("Set1"), Val(1)).evaluate
+                    Delete(Var("Set1"), Val(1)).evaluate()
                 </i>
             </td>
             <td>
@@ -150,10 +150,10 @@ The intention of the project is to create a Domain Specific Language (DSL) for u
         <tr>
             <td><b>Check if value exists in set</b><br><i>Returns: Boolean </i></td>
             <td>
-                <b>Check(Var("name"), Val(value)).evaluate</b><br>
+                <b>Check(Var("name"), Val(value)).evaluate()</b><br>
                 <i>
                     Examples - <br>
-                    Check(Var("Set1"), Val(1)).evaluate
+                    Check(Var("Set1"), Val(1)).evaluate()
                 </i>
             </td>
             <td>
@@ -167,10 +167,10 @@ The intention of the project is to create a Domain Specific Language (DSL) for u
         <tr>
             <td><b>Union of two sets</b><br><i>Returns: Set </i></td>
             <td>
-                <b>Union(Var("Set1"), Var("Set2")).evaluate</b><br>
+                <b>Union(Var("Set1"), Var("Set2")).evaluate()</b><br>
                 <i>
                     Examples - <br>
-                    Union(Var("Set1"), Var("Set2")).evaluate
+                    Union(Var("Set1"), Var("Set2")).evaluate()
                 </i>
             </td>
             <td>
@@ -184,10 +184,10 @@ The intention of the project is to create a Domain Specific Language (DSL) for u
         <tr>
             <td><b>Intersection of two sets</b><br><i>Returns: Set </i></td>
             <td>
-                <b>Intersect(Var("Set1"), Var("Set2")).evaluate</b><br>
+                <b>Intersect(Var("Set1"), Var("Set2")).evaluate()</b><br>
                 <i>
                     Examples - <br>
-                    Intersect(Var("Set1"), Var("Set2")).evaluate
+                    Intersect(Var("Set1"), Var("Set2")).evaluate()
                 </i>
             </td>
             <td>
@@ -201,10 +201,10 @@ The intention of the project is to create a Domain Specific Language (DSL) for u
         <tr>
             <td><b>Set difference of two sets</b><br><i>Returns: Set </i></td>
             <td>
-                <b>Difference(Var("Set1"), Var("Set2")).evaluate</b><br>
+                <b>Difference(Var("Set1"), Var("Set2")).evaluate()</b><br>
                 <i>
                     Examples - <br>
-                    Difference(Var("Set1"), Var("Set2")).evaluate
+                    Difference(Var("Set1"), Var("Set2")).evaluate()
                 </i>
             </td>
             <td>
@@ -218,10 +218,10 @@ The intention of the project is to create a Domain Specific Language (DSL) for u
         <tr>
             <td><b>Symmetric difference of two sets</b><br><i>Returns: Set </i></td>
             <td>
-                <b>SymmetricDifference(Var("Set1"), Var("Set2")).evaluate</b><br>
+                <b>SymmetricDifference(Var("Set1"), Var("Set2")).evaluate()</b><br>
                 <i>
                     Examples - <br>
-                    SymmetricDifference(Var("Set1"), Var("Set2")).evaluate
+                    SymmetricDifference(Var("Set1"), Var("Set2")).evaluate()
                 </i>
             </td>
             <td>
@@ -235,10 +235,10 @@ The intention of the project is to create a Domain Specific Language (DSL) for u
         <tr>
             <td><b>Cartesian product of two sets</b><br><i>Returns: Set </i></td>
             <td>
-                <b>CrossProduct(Var("Set1"), Var("Set2")).evaluate</b><br>
+                <b>CrossProduct(Var("Set1"), Var("Set2")).evaluate()</b><br>
                 <i>
                     Examples - <br>
-                    CrossProduct(Var("Set1"), Var("Set2")).evaluate
+                    CrossProduct(Var("Set1"), Var("Set2")).evaluate()
                 </i>
             </td>
             <td>
@@ -249,10 +249,10 @@ The intention of the project is to create a Domain Specific Language (DSL) for u
         <tr>
             <td><b>Macro Assign</b><br><i>Returns: null </i></td>
             <td>
-                <b>Macro("someString", expression).evaluate</b><br>
+                <b>Macro("someString", expression).evaluate()</b><br>
                 <i>
                     Examples - <br>
-                    Macro("macro1", Union(Var("Set1"), Var("Set2"))).evaluate
+                    Macro("macro1", Union(Var("Set1"), Var("Set2"))).evaluate()
                 </i>
             </td>
             <td>
@@ -261,10 +261,10 @@ The intention of the project is to create a Domain Specific Language (DSL) for u
         <tr>
             <td><b>Macro Execution</b><br><i>Returns: Any </i></td>
             <td>
-                <b>MacroEval("someString").evaluate</b><br>
+                <b>MacroEval("someString").evaluate()</b><br>
                 <i>
                     Examples - <br>
-                    MacroEval("macro1").evaluate
+                    MacroEval("macro1").evaluate()
                 </i>
             </td>
             <td>
@@ -294,20 +294,20 @@ Examples -
 * Value must be any `Val(value)` which covers Val(<i>ScalaInt</i>), Val(<i>ScalaString</i>), Val(<i>Set</i>) etc. OR it can be an expression which must evaluate to any `Val(value)`. 
 
 Examples -
-* Create an integer variable - `Assign("simpleVariable", Val(3)).evaluate `
-* Create a string variable - `Assign("simpleVariable", Val("someString")).evaluate`
-* Create a set variable - `Assign("simpleVariable", Val(Set(1,2,3)).evaluate`
-* Create an empty set variable - `Assign("simpleVariable", Val(Set()).evaluate`
+* Create an integer variable - `Assign("simpleVariable", Val(3)).evaluate() `
+* Create a string variable - `Assign("simpleVariable", Val("someString")).evaluate()`
+* Create a set variable - `Assign("simpleVariable", Val(Set(1,2,3)).evaluate()`
+* Create an empty set variable - `Assign("simpleVariable", Val(Set()).evaluate()`
 
 
 #### Access
 * To access a variable you must enclose the variable name (the string defined during initialization) with `Var()`
 
 Examples -
-* Access an integer variable - `Var("simpleVariable").evaluate `
-* Access a string variable - `Var("simpleVariable").evaluate`
-* Access a set variable - `Var("simpleVariable").evaluate`
-* Access an empty set variable - `Var("simpleVariable").evaluate`
+* Access an integer variable - `Var("simpleVariable").evaluate() `
+* Access a string variable - `Var("simpleVariable").evaluate()`
+* Access a set variable - `Var("simpleVariable").evaluate()`
+* Access an empty set variable - `Var("simpleVariable").evaluate()`
 
 #### How initialization and access of variables works internally in AION? 
 * Memory is represented by a HashMap `bindingScope`. 
@@ -319,102 +319,114 @@ Examples -
 val integerVariable = 2 <br>
 There can not be an expression that evaluates to integerVariable's name integerVariable i.e. no expression can evaluate to the name of the variable itself, other than using the intergerVariable name while initialization, accessing and modifying the variable. 
 * These initialization, access and modification are done in AION like - <br>
-  * Initialization - `Assign("simpleVariable", Val(3)).evaluate` <br>
-  * Modification - `Assign("simpleVariable", Val(100)).evaluate` <br>
-  * Access - `Var("simpleVariable").evaluate` <br>
-* So there is no need for Var() to be present in the LHS of the Assign operation i.e. there is no need for `Assign(Var('simpleVaribale), Val('someString')).evaluate`
+  * Initialization - `Assign("simpleVariable", Val(3)).evaluate()` <br>
+  * Modification - `Assign("simpleVariable", Val(100)).evaluate()` <br>
+  * Access - `Var("simpleVariable").evaluate()` <br>
+* So there is no need for Var() to be present in the LHS of the Assign operation i.e. there is no need for `Assign(Var('simpleVaribale), Val('someString')).evaluate()`
 
 ### Execution of any statement
-* To execute any statement or evaluate any expression, the method `evaluate` must be called from the expression.
+* To execute any statement or evaluate any expression, the method `evaluate()` must be called from the expression.
 * Examples -
-  * `Assign("simpleVariable", Val(3)).evaluate`
-  * `Var(integerVariable).evaluate`
-  * `Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate`
-  * `Delete(Var("Set1"), Val(1)).evaluate`
-  * `Union(Var("Set1"), Var("Set2")).evaluate`
+  * `Assign("simpleVariable", Val(3)).evaluate()`
+  * `Var(integerVariable).evaluate()`
+  * `Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate()`
+  * `Delete(Var("Set1"), Val(1)).evaluate()`
+  * `Union(Var("Set1"), Var("Set2")).evaluate()`
 
 ### Sets
 #### Initialization, Updation and Access
 * Sets are initialized, updated and accessed as mentioned above - 
-    * Initialization - `Assign("simpleVariable", Val(Set(1, 2, 3))).evaluate` <br>
-    * Initialization of an empty set - `Assign("simpleVariable", Val(Set())).evaluate` <br>
-    * Modification - `Assign("simpleVariable", Val(Set(4, 5, 6))).evaluate` <br>
-    * Access - `Var("simpleVariable").evaluate` <br>
+    * Initialization - `Assign("simpleVariable", Val(Set(1, 2, 3))).evaluate()` <br>
+    * Initialization of an empty set - `Assign("simpleVariable", Val(Set())).evaluate()` <br>
+    * Modification - `Assign("simpleVariable", Val(Set(4, 5, 6))).evaluate()` <br>
+    * Access - `Var("simpleVariable").evaluate()` <br>
 
 #### Insertion
-* An element can be inserted into a by the expression - `Insert(Var("name"), Val(value)*).evaluate`
+* An element can be inserted into a by the expression - `Insert(Var("name"), Val(value)*).evaluate()`
 * Examples - 
-  * Single element insertion - `Insert(Var("Set1"), Val(1)).evaluate`
-  * Multiple elements insertion - `Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate`
+  * Single element insertion - `Insert(Var("Set1"), Val(1)).evaluate()`
+  * Multiple elements insertion - `Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate()`
 * Note:
   * There must be a set present in the memory with binding of the name of the variable.
   * If there is no binding or if the binding is not of a set, then the operation results into an error and the program is exited.
 
 #### Deletion
-* An element can be deleted from a set by the expression - `Delete(Var("name"), Val(value)).evaluate`
-* Examples - `Delete(Var("Set1"), Val(1)).evaluate`
+* An element can be deleted from a set by the expression - `Delete(Var("name"), Val(value)).evaluate()`
+* Examples - `Delete(Var("Set1"), Val(1)).evaluate()`
 * Note:
   * There must be a set present in the memory with binding of the name of the variable.
   * If there is no binding or if the binding is not of a set, then the operation results into an error and the program is exited.
 
 #### Check if value exists in set
-* An element can be searched in a set by the expression - `Check(Var("name"), Val(value)).evaluate`
-* Examples - `Check(Var("Set1"), Val(1)).evaluate`
+* An element can be searched in a set by the expression - `Check(Var("name"), Val(value)).evaluate()`
+* Examples - `Check(Var("Set1"), Val(1)).evaluate()`
 * Note:
     * There must be a set present in the memory with binding of the name of the variable.
     * If there is no binding or if the binding is not of a set, then the operation results into an error and the program is exited.
 
 #### Union
 <i>Returns: Set</i>
-* The union of two sets can be evaluated by expression - `Union(Var("Set1"), Var("Set2")).evaluate`
+* The union of two sets can be evaluated by expression - `Union(Var("Set1"), Var("Set2")).evaluate()`
 * Examples - 
-  * `Union(Var("Set1"), Var("Set2")).evaluate`
-  * `Union(Val(Set(1, 2, 3))), Val(Set(2, 3, 4))).evaluate`
+  * `Union(Var("Set1"), Var("Set2")).evaluate()`
+  * `Union(Val(Set(1, 2, 3))), Val(Set(2, 3, 4))).evaluate()`
 
 #### Intersection
 <i>Returns: Set</i>
-* The intersection of two sets can be evaluated by expression - `Intersect(Var("Set1"), Var("Set2")).evaluate`
+* The intersection of two sets can be evaluated by expression - `Intersect(Var("Set1"), Var("Set2")).evaluate()`
 * Examples -
-  * `Intersect(Var("Set1"), Var("Set2")).evaluate`
-  * `Intersect(Val(Set(1, 2, 3))), Val(Set(2, 3, 4))).evaluate`
+  * `Intersect(Var("Set1"), Var("Set2")).evaluate()`
+  * `Intersect(Val(Set(1, 2, 3))), Val(Set(2, 3, 4))).evaluate()`
 
 #### Set difference
 <i>Returns: Set</i>
-* The set difference of two sets can be evaluated by expression - `Difference(Var("Set1"), Var("Set2")).evaluate`
+* The set difference of two sets can be evaluated by expression - `Difference(Var("Set1"), Var("Set2")).evaluate()`
 * Examples -
-  * `Difference(Var("Set1"), Var("Set2")).evaluate`
-  * `Difference(Val(Set(1, 2, 3))), Val(Set(2, 3, 4))).evaluate`
+  * `Difference(Var("Set1"), Var("Set2")).evaluate()`
+  * `Difference(Val(Set(1, 2, 3))), Val(Set(2, 3, 4))).evaluate()`
 
 #### Symmetric difference
 <i>Returns: Set</i>
-* The symmetric difference of two sets can be evaluated by expression - `SymmetricDifference(Var("Set1"), Var("Set2")).evaluate`
+* The symmetric difference of two sets can be evaluated by expression - `SymmetricDifference(Var("Set1"), Var("Set2")).evaluate()`
 * Examples -
-  * `SymmetricDifference(Var("Set1"), Var("Set2")).evaluate`
-  * `SymmetricDifference(Val(Set(1, 2, 3))), Val(Set(2, 3, 4))).evaluate`
+  * `SymmetricDifference(Var("Set1"), Var("Set2")).evaluate()`
+  * `SymmetricDifference(Val(Set(1, 2, 3))), Val(Set(2, 3, 4))).evaluate()`
 
 #### Cartesian product
 <i>Returns: Set</i>
-* The cartesian product of two sets can be evaluated by expression - `CrossProduct(Var("Set1"), Var("Set2")).evaluate`
+* The cartesian product of two sets can be evaluated by expression - `CrossProduct(Var("Set1"), Var("Set2")).evaluate()`
 * Examples -
-  * `CrossProduct(Var("Set1"), Var("Set2")).evaluate`
-  * `CrossProduct(Val(Set(1, 2, 3))), Val(Set(2, 3, 4))).evaluate`
+  * `CrossProduct(Var("Set1"), Var("Set2")).evaluate()`
+  * `CrossProduct(Val(Set(1, 2, 3))), Val(Set(2, 3, 4))).evaluate()`
 
 ### Macro
 #### Macro Assignment
-* Macros are assigned by expression - `Macro("someString", expression).evaluate`
+* Macros are assigned by expression - `Macro("someString", expression).evaluate()`
 * Example - 
-  * `Macro("macro1", Union(Var("Set1"), Var("Set2"))).evaluate`
+  * `Macro("macro1", Union(Var("Set1"), Var("Set2"))).evaluate()`
 
 #### Macro Evaluation
-* Macros are evaluated by expression - `MacroEval("someString").evaluate`
+* Macros are evaluated by expression - `MacroEval("someString").evaluate()`
 * Examples - 
-  * `Macro("macro1", Union(Var("Set1"), Var("Set2"))).evaluate`
-  * `MacroEval("macro1").evaluate`
+  * `Macro("macro1", Union(Var("Set1"), Var("Set2"))).evaluate()`
+  * `MacroEval("macro1").evaluate()`
 
 #### Assignment similar as variables -
 * Macros are assigned in the similar way as variables in AION. 
 * String passed as the macro name is mapped to the operation.
 * When executed, the macro name string fetches the operation and evaluates it. 
+
+### Scope
+* Up until now the scope of all the expressions was global.
+* To assign a scope to any expression, pass a string with the scope name in the evaluate method.
+* Format - `Expression.evaluate(scopeName)`
+* Examples - 
+* The scopes are parallel to each other except global.
+* The hierarchy of scopes is as follows - 
+  * global scope
+    * User defined scope 1 
+    * User defined scope 2
+    * and so on...
 
 
 ## Files
