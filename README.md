@@ -425,19 +425,44 @@ There can not be an expression that evaluates to integerVariable's name integerV
   ```
   Assign("Set1", Val(Set(1, 2, 3))).evaluate()
   Assign("Set2", Val(Set(2, 3, 4))).evaluate()
-  Union(Var("Set1"), Var("Set2")).evaluate())
+  println(Union(Var("Set1"), Var("Set2")).evaluate())
   ```
   ```
-  Output = Set(1, 2, 3, 4)
+  Output: Set(1, 2, 3, 4)
+  ```
+  
+  * User defined scopes
+  ```
+  Assign("Set1", Val(Set(1, 2, 3))).evaluate("a")
+  Assign("Set2", Val(Set(2, 3, 4))).evaluate("a")
+  Assign("Set1", Val(Set(10, 20, 30))).evaluate("b")
+  Assign("Set2", Val(Set(20, 30 ,40))).evaluate("b")
+  println(Union(Var("Set1"), Var("Set2")).evaluate("a"))
+  ```
+  ```
+  Output: Set(1, 2, 3, 4)
   ```
   * User defined scopes
   ```
+  Assign("Set1", Val(Set(1, 2, 3))).evaluate("a")
+  Assign("Set2", Val(Set(2, 3, 4))).evaluate("a")
+  Assign("Set1", Val(Set(10, 20, 30))).evaluate("b")
+  Assign("Set2", Val(Set(20, 30 ,40))).evaluate("b")
+  println(Union(Var("Set1"), Var("Set2")).evaluate("b"))
+  ```
+  ```
+  Output: Set(10, 20, 30, 40)
+  ```
+  * If scope not found, then global scope is searched
+  ```
   Assign("Set1", Val(Set(1, 2, 3))).evaluate()
   Assign("Set2", Val(Set(2, 3, 4))).evaluate()
-  Union(Var("Set1"), Var("Set2")).evaluate())
+  Assign("Set1", Val(Set(10, 20, 30))).evaluate("b")
+  Assign("Set2", Val(Set(20, 30, 40))).evaluate("b")
+  println(Union(Var("Set1"), Var("Set2")).evaluate("a"))
   ```
   ```
-  Output = Set(1, 2, 3, 4)
+  Output: Set(1, 2, 3, 4)
   ```
 
 * The scopes are parallel to each other except global.
