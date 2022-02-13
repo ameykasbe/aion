@@ -7,6 +7,7 @@
 ## Project Description
 The intention of the project is to create a Domain Specific Language (DSL) for users of the set theory to create and evaluate binary operations on sets using variables and scopes where elements of the sets can be objects of any type.
 
+
 ## Syntax
 <table>
     <thead>
@@ -147,12 +148,12 @@ The intention of the project is to create a Domain Specific Language (DSL) for u
             </td>
         </tr>
         <tr>
-            <td><b>Check if value in set</b><br><i>Returns: Boolean </i></td>
+            <td><b>Check if value exists in set</b><br><i>Returns: Boolean </i></td>
             <td>
                 <b>Check(Var("name"), Val(value)).evaluate</b><br>
                 <i>
                     Examples - <br>
-                    Delete(Var("Set1"), Val(1)).evaluate
+                    Check(Var("Set1"), Val(1)).evaluate
                 </i>
             </td>
             <td>
@@ -274,19 +275,161 @@ The intention of the project is to create a Domain Specific Language (DSL) for u
 
 
 ## Semantics
-#### TODOS
-* How are we binding variables to values?
-* How to use language with tons of examples.
-* Insert, delete etc. Need a set to be present in memory to add. Else error message is diplayed.
+### DataTypes
+* There is one kind of 'primitive' datatype in AION which is `Val`.
+* It encloses all the datatypes of Scala e.g. Int, String, Set etc. in the format of `Val(value)`
+* Any operation needed to be performed must evaluate to a `Val` datatype. 
 
-### Unit testing procedure
-#### Using IntelliJ Idea
+Examples -
+* Create an integer Val - `Val(100)`
+* Create a string Val - `Val("someRandomString")`
+* Create a set val - `Val(Set(10, 20, 30))`
+
+### Variables
+#### Initialization
+* In AION, variables are initialized as -
+  `Assign(name, value)`
+* Here, name must always be a Scala string. 
+* The string is only required at the time of initialization.
+* Value must be any `Val(value)` which covers Val(<i>ScalaInt</i>), Val(<i>ScalaString</i>), Val(<i>Set</i>) etc. OR it can be an expression which must evaluate to any `Val(value)`. 
+
+Examples -
+* Create an integer variable - `Assign("simpleVariable", Val(3)).evaluate `
+* Create a string variable - `Assign("simpleVariable", Val("someString")).evaluate`
+* Create a set variable - `Assign("simpleVariable", Val(Set(1,2,3)).evaluate`
+* Create an empty set variable - `Assign("simpleVariable", Val(Set()).evaluate`
+
+
+#### Access
+* To access a variable you must enclose the variable name (the string defined during initialization) with `Var()`
+
+Examples -
+* Access an integer variable - `Var("simpleVariable").evaluate `
+* Access a string variable - `Var("simpleVariable").evaluate`
+* Access a set variable - `Var("simpleVariable").evaluate`
+* Access an empty set variable - `Var("simpleVariable").evaluate`
+
+#### How initialization and access of variables works internally in AION? 
+* Memory is represented by a HashMap `bindingScope`. 
+* The string defined at the time of initialization is mapped to the values in this HashMap.
+* When any variable is accessed by Var(), it is searched in the `bindingScope`, if it is present, the value is returned else an error message is displayed and the program is exited.
+
+#### Analogy to Scala
+* For example, in scala there can not be an expression that will result into the variable's name itself. <br >Example - <br>
+val integerVariable = 2 <br>
+There can not be an expression that evaluates to integerVariable's name integerVariable i.e. no expression can evaluate to the name of the variable itself, other than using the intergerVariable name while initialization, accessing and modifying the variable. 
+* These initialization, access and modification are done in AION like - <br>
+  * Initialization - `Assign("simpleVariable", Val(3)).evaluate` <br>
+  * Modification - `Assign("simpleVariable", Val(100)).evaluate` <br>
+  * Access - `Var("simpleVariable").evaluate` <br>
+* So there is no need for Var() to be present in the LHS of the Assign operation i.e. there is no need for `Assign(Var('simpleVaribale), Val('someString')).evaluate`
+
+### Execution of any statement
+* To execute any statement or evaluate any expression, the method `evaluate` must be called from the expression.
+* Examples -
+  * `Assign("simpleVariable", Val(3)).evaluate`
+  * `Var(integerVariable).evaluate`
+  * `Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate`
+  * `Delete(Var("Set1"), Val(1)).evaluate`
+  * `Union(Var("Set1"), Var("Set2")).evaluate`
+
+### Sets
+#### Initialization, Updation and Access
+* Sets are initialized, updated and accessed as mentioned above - 
+    * Initialization - `Assign("simpleVariable", Val(Set(1, 2, 3))).evaluate` <br>
+    * Initialization of an empty set - `Assign("simpleVariable", Val(Set())).evaluate` <br>
+    * Modification - `Assign("simpleVariable", Val(Set(4, 5, 6))).evaluate` <br>
+    * Access - `Var("simpleVariable").evaluate` <br>
+
+#### Insertion
+* An element can be inserted into a by the expression - `Insert(Var("name"), Val(value)*).evaluate`
+* Examples - 
+  * Single element insertion - `Insert(Var("Set1"), Val(1)).evaluate`
+  * Multiple elements insertion - `Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate`
+* Note:
+  * There must be a set present in the memory with binding of the name of the variable.
+  * If there is no binding or if the binding is not of a set, then the operation results into an error and the program is exited.
+
+#### Deletion
+* An element can be deleted from a set by the expression - `Delete(Var("name"), Val(value)).evaluate`
+* Examples - `Delete(Var("Set1"), Val(1)).evaluate`
+* Note:
+  * There must be a set present in the memory with binding of the name of the variable.
+  * If there is no binding or if the binding is not of a set, then the operation results into an error and the program is exited.
+
+#### Check if value exists in set
+* An element can be searched in a set by the expression - `Check(Var("name"), Val(value)).evaluate`
+* Examples - `Check(Var("Set1"), Val(1)).evaluate`
+* Note:
+    * There must be a set present in the memory with binding of the name of the variable.
+    * If there is no binding or if the binding is not of a set, then the operation results into an error and the program is exited.
+
+#### Union
+<i>Returns: Set</i>
+* The union of two sets can be evaluated by expression - `Union(Var("Set1"), Var("Set2")).evaluate`
+* Examples - 
+  * `Union(Var("Set1"), Var("Set2")).evaluate`
+  * `Union(Val(Set(1, 2, 3))), Val(Set(2, 3, 4))).evaluate`
+
+#### Intersection
+<i>Returns: Set</i>
+* The intersection of two sets can be evaluated by expression - `Intersect(Var("Set1"), Var("Set2")).evaluate`
+* Examples -
+  * `Intersect(Var("Set1"), Var("Set2")).evaluate`
+  * `Intersect(Val(Set(1, 2, 3))), Val(Set(2, 3, 4))).evaluate`
+
+#### Set difference
+<i>Returns: Set</i>
+* The set difference of two sets can be evaluated by expression - `Difference(Var("Set1"), Var("Set2")).evaluate`
+* Examples -
+  * `Difference(Var("Set1"), Var("Set2")).evaluate`
+  * `Difference(Val(Set(1, 2, 3))), Val(Set(2, 3, 4))).evaluate`
+
+#### Symmetric difference
+<i>Returns: Set</i>
+* The symmetric difference of two sets can be evaluated by expression - `SymmetricDifference(Var("Set1"), Var("Set2")).evaluate`
+* Examples -
+  * `SymmetricDifference(Var("Set1"), Var("Set2")).evaluate`
+  * `SymmetricDifference(Val(Set(1, 2, 3))), Val(Set(2, 3, 4))).evaluate`
+
+#### Cartesian product
+<i>Returns: Set</i>
+* The cartesian product of two sets can be evaluated by expression - `CrossProduct(Var("Set1"), Var("Set2")).evaluate`
+* Examples -
+  * `CrossProduct(Var("Set1"), Var("Set2")).evaluate`
+  * `CrossProduct(Val(Set(1, 2, 3))), Val(Set(2, 3, 4))).evaluate`
+
+### Macro
+#### Macro Assignment
+* Macros are assigned by expression - `Macro("someString", expression).evaluate`
+* Example - 
+  * `Macro("macro1", Union(Var("Set1"), Var("Set2"))).evaluate`
+
+#### Macro Evaluation
+* Macros are evaluated by expression - `MacroEval("someString").evaluate`
+* Examples - 
+  * `Macro("macro1", Union(Var("Set1"), Var("Set2"))).evaluate`
+  * `MacroEval("macro1").evaluate`
+
+#### Assignment similar as variables -
+* Macros are assigned in the similar way as variables in AION. 
+* String passed as the macro name is mapped to the operation.
+* When executed, the macro name string fetches the operation and evaluates it. 
+
+
+## Files
+### Source Code
+* Source code is present in `aion.scala`
+* Test suite is present in `aionTestSuite.scala`
+
+## Unit testing procedure
+### Using IntelliJ Idea
 1. Clone this repository.
 2. Import the project in IntelliJ Idea.
 3. Write your syntactically and semantically correct AION code in main method `runAion`of `aion.scala`.
 4. Run the `runAion` main method of `aion.scala` using IntelliJ Idea.
 
-#### By SBT test command
+### By SBT test command
 1. Clone this repository.
 2. Write your syntactically and semantically correct AION code in main method `runAion`of `aion.scala`.
 3. In terminal, navigate to root path.
