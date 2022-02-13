@@ -115,7 +115,7 @@ object aion:
           if (evaluatedSetName.asInstanceOf[Set[BasicType]].contains(evaluatedValue)) {
             return true
           }
-          return false
+          false
 
 
         // Deletes an DSL expression from a set.
@@ -128,7 +128,7 @@ object aion:
             System.exit(1)
           }
           if (evaluatedSetName.asInstanceOf[Set[BasicType]].contains(evaluatedValue)) {
-            return bindingScope.update(evaluatedSetName, evaluatedSetName.asInstanceOf[Set[BasicType]] -= evaluatedValue)
+            bindingScope.update(evaluatedSetName, evaluatedSetName.asInstanceOf[Set[BasicType]] -= evaluatedValue)
           }
           else{
             logger.error(s"Name $setName does not contain $value.")
@@ -230,7 +230,7 @@ object aion:
           val set1 = set1Eval.asInstanceOf[Set[BasicType]]
           val set2 = set2Eval.asInstanceOf[Set[BasicType]]
           val output = for {s1 <- set1; s2 <- set2} yield (s1, s2)
-          return output.asInstanceOf[Set[BasicType]]
+          output.asInstanceOf[Set[BasicType]]
 
 
 
