@@ -31,8 +31,8 @@ object aion:
     case Macro(macroName: String, operand: Expression) // Creates a Macro
     case MacroEval(macroName: String) // Evaluates a Macro
 
-    def evaluate: BasicType =
-    // Evaluates an expression.
+    def evaluate(scopeName: String = "global"): BasicType =
+    // Evaluates an expression. Accepts an argument scopeName representing scope with default value as global.
       this.match {
 
         // Val(value): `Val` is the constant datatype for the DSL. `value` can be of any datatype of language Scala. Evaluating the expression `Val(value)` returns value.
@@ -44,34 +44,55 @@ object aion:
         // If there is no binding of `name` in the HashMap, it displays an error and exits the program.
         // In short, `name` in DSL represents the variable name in any language. `bindingScope` represents memory.
         // In the DSL, returning value from HashMap represents reading from memory location.
+
+        // If scope is not global, before searching for bindings, the scope name is concatenated with the name and searched in the binding.
         case Var(name) => {
-          if (bindingScope.contains(name)) {
-            bindingScope(name)
+          if (scopeName == "global") {
+            if (bindingScope.contains(name)) {
+              bindingScope(name)
+            }
+            else {
+              logger.error(s"Name $name not assigned.")
+              System.exit(1)
+            }
           }
-          else {
-            logger.error(s"Name $name not assigned.")
-            System.exit(1)
+          else{
+            val varNameWScope = scopeName + name
+            if (bindingScope.contains(varNameWScope)) {
+              bindingScope(varNameWScope)
+            }
+            else {
+              logger.error(s"Name $name not assigned in scope $scopeName.")
+              System.exit(1)
+            }
           }
         }
 
-        // Maps a variabe to its value. If the variable already exists in HashMap, updates the varibale.
+        // Maps a variable to its value. If the variable already exists in HashMap, updates the varible.
+        // If there is any scope other than global scope passed as argument, variable name before binding changes accommodating the new scope. Scope name is concatenated with the name of the variable.
         case Assign(name, value) => {
-          if (!value.isInstanceOf[Expression]){
+          if (!value.isInstanceOf[Expression]) {
             println("Not supported data type.")
             System.exit(1)
           }
-          bindingScope += (name -> value.evaluate)
+          if (scopeName == "global") {
+            bindingScope += (name -> value.evaluate(scopeName))
+          }
+          else{
+            val varNameWScope = scopeName + name
+            bindingScope += (varNameWScope -> value.evaluate(scopeName))
+          }
         }
 
         // Inserts a number of DSL expressions into a set. First the expressions are evaluated and then inserted into the set. If the set does not exist in HashMap, error is displayed and program is exited.
         case Insert(setName, value*) => {
-          val evaluatedSetName = setName.evaluate
+          val evaluatedSetName = setName.evaluate(scopeName)
           if (!evaluatedSetName.isInstanceOf[Set[Any]]) {
             logger.error(s"Name $setName is not a set.")
             System.exit(1)
           }
           for {v <- value} {
-            val evaluatedValue = v.evaluate
+            val evaluatedValue = v.evaluate(scopeName)
             bindingScope.update(evaluatedSetName, evaluatedSetName.asInstanceOf[Set[BasicType]] += evaluatedValue)
           }
         }
@@ -79,8 +100,8 @@ object aion:
         // Checks if a value is present in a set.
         // Returns a boolean if the value is present.
         case Check(setName, value) => {
-          val evaluatedSetName = setName.evaluate
-          val evaluatedValue = value.evaluate
+          val evaluatedSetName = setName.evaluate(scopeName)
+          val evaluatedValue = value.evaluate(scopeName)
           if (!evaluatedSetName.isInstanceOf[Set[Any]]) {
             logger.error(s"Name $setName is not a set.")
             System.exit(1)
@@ -94,8 +115,8 @@ object aion:
         // Deletes an DSL expression from a set.
         // If the set does not exist in HashMap, error is displayed and program is exited.
         case Delete(setName, value) => {
-          val evaluatedSetName = setName.evaluate
-          val evaluatedValue = value.evaluate
+          val evaluatedSetName = setName.evaluate(scopeName)
+          val evaluatedValue = value.evaluate(scopeName)
           if (!evaluatedSetName.isInstanceOf[Set[Any]]) {
             logger.error(s"Name $setName is not a set.")
             System.exit(1)
@@ -115,8 +136,8 @@ object aion:
         // The sets can be expressions. The expressions are evaluated first and then their union is returned.
         // If any of the sets does not exist in HashMap, error is displayed and program is exited.
         case Union(setName1, setName2) => {
-          val set1Eval = setName1.evaluate
-          val set2Eval = setName2.evaluate
+          val set1Eval = setName1.evaluate(scopeName)
+          val set2Eval = setName2.evaluate(scopeName)
 
           if (!set1Eval.isInstanceOf[Set[Any]]) {
             logger.error(s"Name $setName1 is not a set.")
@@ -137,8 +158,8 @@ object aion:
         // The sets can be expressions. The expressions are evaluated first and then their intersection is returned.
         // If any of the sets does not exist in HashMap, error is displayed and program is exited.
         case Intersect(setName1, setName2) => {
-          val set1Eval = setName1.evaluate
-          val set2Eval = setName2.evaluate
+          val set1Eval = setName1.evaluate(scopeName)
+          val set2Eval = setName2.evaluate(scopeName)
           if (!set1Eval.isInstanceOf[Set[Any]]) {
             logger.error(s"Name $setName1 is not a set.")
             System.exit(1)
@@ -158,8 +179,8 @@ object aion:
         // The sets can be expressions. The expressions are evaluated first and then their set difference is returned.
         // If any of the sets does not exist in HashMap, error is displayed and program is exited.
         case Difference(setName1, setName2) => {
-          val set1Eval = setName1.evaluate
-          val set2Eval = setName2.evaluate
+          val set1Eval = setName1.evaluate(scopeName)
+          val set2Eval = setName2.evaluate(scopeName)
           if (!set1Eval.isInstanceOf[Set[Any]]) {
             logger.error(s"Name $setName1 is not a set.")
             System.exit(1)
@@ -181,7 +202,7 @@ object aion:
         case SymmetricDifference(set1, set2) => {
           val diff1 = Difference(set1, set2)
           val diff2 = Difference(set2, set1)
-          Union(diff1, diff2).evaluate
+          Union(diff1, diff2).evaluate(scopeName)
         }
 
         // Cartesian product or Cross product of A and B, denoted A × B, is the set whose members are all possible ordered pairs (a, b), where a is a member of A and b is a member of B.
@@ -189,8 +210,8 @@ object aion:
         // The sets can be expressions. The expressions are evaluated first and then their cross product is returned.
         // If any of the sets does not exist in HashMap, error is displayed and program is exited.
         case CrossProduct(setName1: Expression, setName2: Expression) => {
-          val set1Eval = setName1.evaluate
-          val set2Eval = setName2.evaluate
+          val set1Eval = setName1.evaluate(scopeName)
+          val set2Eval = setName2.evaluate(scopeName)
           if (!set1Eval.isInstanceOf[Set[Any]]) {
             logger.error(s"Name $setName1 is not a set.")
             System.exit(1)
@@ -217,10 +238,9 @@ object aion:
         // Evaluates a Macro
         // Macro is executed here only. This is lazy evaluation.
         case MacroEval(macroName) => {
-          val returnIfAny = bindingScope(macroName).asInstanceOf[Expression].evaluate
+          val returnIfAny = bindingScope(macroName).asInstanceOf[Expression].evaluate(scopeName)
           returnIfAny
         }
-
       }
 
   @main def runAion: Unit =
