@@ -249,7 +249,7 @@ object aion:
 
       }
 
-  @main def runAion: Unit =
+  @main def runAion(): Unit =
     // Main function
     // Importing all expressions
     import Expression.*
