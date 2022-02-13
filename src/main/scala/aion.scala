@@ -230,7 +230,3 @@ object aion:
 
     // WRITE YOUR CODE HERE
     // TEST SUITE IS PRESENT IN aionTestSuite.scala
-    Assign("set1", Val(Set(1, 2, 3))).evaluate
-    Delete(Var("set1"), Val(4)).evaluate
-    println(Var("set1").evaluate)
-
