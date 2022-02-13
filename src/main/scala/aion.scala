@@ -6,7 +6,7 @@ import scala.runtime.BoxedUnit
 object aion:
   // Creating a private HashMap to store and map variables to values.
   // Represents memory of the DSL.
-  private val bindingScope: scala.collection.mutable.Map[BasicType, BasicType] = Map()
+  private val bindingScope: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
 
   // Define BasicType
   type BasicType = Any
@@ -15,7 +15,7 @@ object aion:
   val logger: Logger = LoggerFactory.getLogger(this.getClass.getSimpleName)
 
   enum Expression:
-    // Expression enum. Representing all the functionalies of DSL - Constant, Variable, expressions etc.
+    // Expression enum. Representing all the functionalities of DSL - Constant, Variable, expressions etc.
     // In the documentation and comments, "expression" denotes a constant, variable or any other expression from the Expression enum
     case Val(value: BasicType) // A constant
     case Var(name: String) // A variable
@@ -93,13 +93,13 @@ object aion:
         // Inserts a number of DSL expressions into a set. First the expressions are evaluated and then inserted into the set. If the set does not exist in HashMap, error is displayed and program is exited.
         case Insert(setName, value*) =>
           val evaluatedSetName = setName.evaluate(scopeName)
-          if (!evaluatedSetName.isInstanceOf[Set[Any]]) {
+          if (!evaluatedSetName.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName is not a set.")
             System.exit(1)
           }
           for {v <- value} {
             val evaluatedValue = v.evaluate(scopeName)
-            bindingScope.update(evaluatedSetName, evaluatedSetName.asInstanceOf[Set[BasicType]] += evaluatedValue)
+            bindingScope.update(evaluatedSetName, evaluatedSetName.asInstanceOf[scala.collection.mutable.Set[BasicType]] += evaluatedValue)
           }
 
 
@@ -108,11 +108,11 @@ object aion:
         case Check(setName, value) =>
           val evaluatedSetName = setName.evaluate(scopeName)
           val evaluatedValue = value.evaluate(scopeName)
-          if (!evaluatedSetName.isInstanceOf[Set[Any]]) {
+          if (!evaluatedSetName.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName is not a set.")
             System.exit(1)
           }
-          if (evaluatedSetName.asInstanceOf[Set[BasicType]].contains(evaluatedValue)) {
+          if (evaluatedSetName.asInstanceOf[scala.collection.mutable.Set[BasicType]].contains(evaluatedValue)) {
             return true
           }
           false
@@ -123,12 +123,12 @@ object aion:
         case Delete(setName, value) =>
           val evaluatedSetName = setName.evaluate(scopeName)
           val evaluatedValue = value.evaluate(scopeName)
-          if (!evaluatedSetName.isInstanceOf[Set[Any]]) {
+          if (!evaluatedSetName.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName is not a set.")
             System.exit(1)
           }
-          if (evaluatedSetName.asInstanceOf[Set[BasicType]].contains(evaluatedValue)) {
-            bindingScope.update(evaluatedSetName, evaluatedSetName.asInstanceOf[Set[BasicType]] -= evaluatedValue)
+          if (evaluatedSetName.asInstanceOf[scala.collection.mutable.Set[BasicType]].contains(evaluatedValue)) {
+            bindingScope.update(evaluatedSetName, evaluatedSetName.asInstanceOf[scala.collection.mutable.Set[BasicType]] -= evaluatedValue)
           }
           else{
             logger.error(s"Name $setName does not contain $value.")
@@ -145,17 +145,17 @@ object aion:
           val set1Eval = setName1.evaluate(scopeName)
           val set2Eval = setName2.evaluate(scopeName)
 
-          if (!set1Eval.isInstanceOf[Set[Any]]) {
+          if (!set1Eval.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName1 is not a set.")
             System.exit(1)
           }
 
-          if (!set2Eval.isInstanceOf[Set[Any]]) {
+          if (!set2Eval.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName2 is not a set.")
             System.exit(1)
           }
-          val set1 = set1Eval.asInstanceOf[Set[BasicType]]
-          val set2 = set2Eval.asInstanceOf[Set[BasicType]]
+          val set1 = set1Eval.asInstanceOf[scala.collection.mutable.Set[BasicType]]
+          val set2 = set2Eval.asInstanceOf[scala.collection.mutable.Set[BasicType]]
           set1.union(set2)
 
 
@@ -166,17 +166,17 @@ object aion:
         case Intersect(setName1, setName2) =>
           val set1Eval = setName1.evaluate(scopeName)
           val set2Eval = setName2.evaluate(scopeName)
-          if (!set1Eval.isInstanceOf[Set[Any]]) {
+          if (!set1Eval.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName1 is not a set.")
             System.exit(1)
           }
 
-          if (!set2Eval.isInstanceOf[Set[Any]]) {
+          if (!set2Eval.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName2 is not a set.")
             System.exit(1)
           }
-          val set1 = set1Eval.asInstanceOf[Set[BasicType]]
-          val set2 = set2Eval.asInstanceOf[Set[BasicType]]
+          val set1 = set1Eval.asInstanceOf[scala.collection.mutable.Set[BasicType]]
+          val set2 = set2Eval.asInstanceOf[scala.collection.mutable.Set[BasicType]]
           set1.intersect(set2)
 
 
@@ -187,17 +187,17 @@ object aion:
         case Difference(setName1, setName2) =>
           val set1Eval = setName1.evaluate(scopeName)
           val set2Eval = setName2.evaluate(scopeName)
-          if (!set1Eval.isInstanceOf[Set[Any]]) {
+          if (!set1Eval.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName1 is not a set.")
             System.exit(1)
           }
 
-          if (!set2Eval.isInstanceOf[Set[Any]]) {
+          if (!set2Eval.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName2 is not a set.")
             System.exit(1)
           }
-          val set1 = set1Eval.asInstanceOf[Set[BasicType]]
-          val set2 = set2Eval.asInstanceOf[Set[BasicType]]
+          val set1 = set1Eval.asInstanceOf[scala.collection.mutable.Set[BasicType]]
+          val set2 = set2Eval.asInstanceOf[scala.collection.mutable.Set[BasicType]]
           set1.diff(set2)
 
 
@@ -218,19 +218,19 @@ object aion:
         case CrossProduct(setName1: Expression, setName2: Expression) =>
           val set1Eval = setName1.evaluate(scopeName)
           val set2Eval = setName2.evaluate(scopeName)
-          if (!set1Eval.isInstanceOf[Set[Any]]) {
+          if (!set1Eval.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName1 is not a set.")
             System.exit(1)
           }
 
-          if (!set2Eval.isInstanceOf[Set[Any]]) {
+          if (!set2Eval.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName2 is not a set.")
             System.exit(1)
           }
-          val set1 = set1Eval.asInstanceOf[Set[BasicType]]
-          val set2 = set2Eval.asInstanceOf[Set[BasicType]]
+          val set1 = set1Eval.asInstanceOf[scala.collection.mutable.Set[BasicType]]
+          val set2 = set2Eval.asInstanceOf[scala.collection.mutable.Set[BasicType]]
           val output = for {s1 <- set1; s2 <- set2} yield (s1, s2)
-          output.asInstanceOf[Set[BasicType]]
+          output.asInstanceOf[scala.collection.mutable.Set[BasicType]]
 
 
 
@@ -256,3 +256,8 @@ object aion:
 
     // WRITE YOUR CODE HERE
     // TEST SUITE IS PRESENT IN aionTestSuite.scala
+
+    // COMMENT OUT CODE BELOW
+    Assign("Set1", Val(scala.collection.mutable.Set())).evaluate()
+    Insert(Var("Set1"), Val(1)).evaluate()
+    println(Var("Set1").evaluate() == scala.collection.mutable.Set(1))
