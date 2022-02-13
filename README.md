@@ -421,6 +421,25 @@ There can not be an expression that evaluates to integerVariable's name integerV
 * To assign a scope to any expression, pass a string with the scope name in the evaluate method.
 * Format - `Expression.evaluate(scopeName)`
 * Examples - 
+  * Global scope
+  ```
+  Assign("Set1", Val(Set(1, 2, 3))).evaluate()
+  Assign("Set2", Val(Set(2, 3, 4))).evaluate()
+  Union(Var("Set1"), Var("Set2")).evaluate())
+  ```
+  ```
+  Output = Set(1, 2, 3, 4)
+  ```
+  * User defined scopes
+  ```
+  Assign("Set1", Val(Set(1, 2, 3))).evaluate()
+  Assign("Set2", Val(Set(2, 3, 4))).evaluate()
+  Union(Var("Set1"), Var("Set2")).evaluate())
+  ```
+  ```
+  Output = Set(1, 2, 3, 4)
+  ```
+
 * The scopes are parallel to each other except global.
 * The hierarchy of scopes is as follows - 
   * global scope
