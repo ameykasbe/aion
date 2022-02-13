@@ -6,8 +6,7 @@ import scala.runtime.BoxedUnit
 object aion:
   // Creating a private HashMap to store and map variables to values.
   // Represents memory of the DSL.
-  // Explanation for var: Used a mutable variable instead of a immutable object because if a immutable object is used, once instantiated, can not accept any more DSL variable and value pair to store. If bindingScope is an immutable object, For every DSL variable, a new object would have to created, defeating the purpose of the language.
-  private var bindingScope: scala.collection.mutable.Map[BasicType, BasicType] = Map()
+  private val bindingScope: scala.collection.mutable.Map[BasicType, BasicType] = Map()
 
   // Define BasicType
   type BasicType = Any
@@ -265,7 +264,4 @@ object aion:
 
     // WRITE YOUR CODE HERE
     // TEST SUITE IS PRESENT IN aionTestSuite.scala
-
-
-
 
