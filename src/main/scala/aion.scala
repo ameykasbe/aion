@@ -47,7 +47,7 @@ object aion:
 
         // If scope is not global, before searching for bindings, the scope name is concatenated with the name and searched in the binding.
         // If not found in a particular scope, the binding is searched in global. If not found there, error is displayed and program is executed.
-        case Var(name) => {
+        case Var(name) =>
           if (scopeName == "global") {
             if (bindingScope.contains(name)) {
               bindingScope(name)
@@ -72,11 +72,11 @@ object aion:
               }
             }
           }
-        }
+
 
         // Maps a variable to its value. If the variable already exists in HashMap, updates the varible.
         // If there is any scope other than global scope passed as argument, variable name before binding changes accommodating the new scope. Scope name is concatenated with the name of the variable.
-        case Assign(name, value) => {
+        case Assign(name, value) =>
           if (!value.isInstanceOf[Expression]) {
             println("Not supported data type.")
             System.exit(1)
@@ -88,10 +88,10 @@ object aion:
             val varNameWScope = scopeName + name
             bindingScope += (varNameWScope -> value.evaluate(scopeName))
           }
-        }
+
 
         // Inserts a number of DSL expressions into a set. First the expressions are evaluated and then inserted into the set. If the set does not exist in HashMap, error is displayed and program is exited.
-        case Insert(setName, value*) => {
+        case Insert(setName, value*) =>
           val evaluatedSetName = setName.evaluate(scopeName)
           if (!evaluatedSetName.isInstanceOf[Set[Any]]) {
             logger.error(s"Name $setName is not a set.")
@@ -101,11 +101,11 @@ object aion:
             val evaluatedValue = v.evaluate(scopeName)
             bindingScope.update(evaluatedSetName, evaluatedSetName.asInstanceOf[Set[BasicType]] += evaluatedValue)
           }
-        }
+
 
         // Checks if a value is present in a set.
         // Returns a boolean if the value is present.
-        case Check(setName, value) => {
+        case Check(setName, value) =>
           val evaluatedSetName = setName.evaluate(scopeName)
           val evaluatedValue = value.evaluate(scopeName)
           if (!evaluatedSetName.isInstanceOf[Set[Any]]) {
@@ -116,11 +116,11 @@ object aion:
             return true
           }
           return false
-        }
+
 
         // Deletes an DSL expression from a set.
         // If the set does not exist in HashMap, error is displayed and program is exited.
-        case Delete(setName, value) => {
+        case Delete(setName, value) =>
           val evaluatedSetName = setName.evaluate(scopeName)
           val evaluatedValue = value.evaluate(scopeName)
           if (!evaluatedSetName.isInstanceOf[Set[Any]]) {
@@ -135,13 +135,13 @@ object aion:
             System.exit(1)
           }
 
-        }
+
 
         // Union of the sets A and B, denoted A ∪ B, is the set of all objects that are a member of A, or B, or both.
         // Returns the union of two sets.
         // The sets can be expressions. The expressions are evaluated first and then their union is returned.
         // If any of the sets does not exist in HashMap, error is displayed and program is exited.
-        case Union(setName1, setName2) => {
+        case Union(setName1, setName2) =>
           val set1Eval = setName1.evaluate(scopeName)
           val set2Eval = setName2.evaluate(scopeName)
 
@@ -157,13 +157,13 @@ object aion:
           val set1 = set1Eval.asInstanceOf[Set[BasicType]]
           val set2 = set2Eval.asInstanceOf[Set[BasicType]]
           set1.union(set2)
-        }
+
 
         // Intersection of the sets A and B, denoted A ∩ B, is the set of all objects that are members of both A and B.
         // Returns the intersection of two sets.
         // The sets can be expressions. The expressions are evaluated first and then their intersection is returned.
         // If any of the sets does not exist in HashMap, error is displayed and program is exited.
-        case Intersect(setName1, setName2) => {
+        case Intersect(setName1, setName2) =>
           val set1Eval = setName1.evaluate(scopeName)
           val set2Eval = setName2.evaluate(scopeName)
           if (!set1Eval.isInstanceOf[Set[Any]]) {
@@ -178,13 +178,13 @@ object aion:
           val set1 = set1Eval.asInstanceOf[Set[BasicType]]
           val set2 = set2Eval.asInstanceOf[Set[BasicType]]
           set1.intersect(set2)
-        }
+
 
         // Set difference of U and A, denoted U \ A, is the set of all members of U that are not members of A.
         // Returns the set difference of two sets.
         // The sets can be expressions. The expressions are evaluated first and then their set difference is returned.
         // If any of the sets does not exist in HashMap, error is displayed and program is exited.
-        case Difference(setName1, setName2) => {
+        case Difference(setName1, setName2) =>
           val set1Eval = setName1.evaluate(scopeName)
           val set2Eval = setName2.evaluate(scopeName)
           if (!set1Eval.isInstanceOf[Set[Any]]) {
@@ -199,23 +199,23 @@ object aion:
           val set1 = set1Eval.asInstanceOf[Set[BasicType]]
           val set2 = set2Eval.asInstanceOf[Set[BasicType]]
           set1.diff(set2)
-        }
+
 
         // Symmetric difference of sets A and B, denoted A ⊖ B, is the set of all objects that are a member of exactly one of A and B (elements which are in one of the sets, but not in both). For instance, for the sets {1, 2, 3} and {2, 3, 4}, the symmetric difference set is {1, 4}. It is the set difference of the union and the intersection, (A ∪ B) \ (A ∩ B) or (A \ B) ∪ (B \ A).
         // Returns the symmetric difference of two sets.
         // The sets can be expressions. The expressions are evaluated first and then their symmetric difference is returned.
         // If any of the sets does not exist in HashMap, error is displayed and program is exited.
-        case SymmetricDifference(set1, set2) => {
+        case SymmetricDifference(set1, set2) =>
           val diff1 = Difference(set1, set2)
           val diff2 = Difference(set2, set1)
           Union(diff1, diff2).evaluate(scopeName)
-        }
+
 
         // Cartesian product or Cross product of A and B, denoted A × B, is the set whose members are all possible ordered pairs (a, b), where a is a member of A and b is a member of B.
         // Returns the cross product of two sets.
         // The sets can be expressions. The expressions are evaluated first and then their cross product is returned.
         // If any of the sets does not exist in HashMap, error is displayed and program is exited.
-        case CrossProduct(setName1: Expression, setName2: Expression) => {
+        case CrossProduct(setName1: Expression, setName2: Expression) =>
           val set1Eval = setName1.evaluate(scopeName)
           val set2Eval = setName2.evaluate(scopeName)
           if (!set1Eval.isInstanceOf[Set[Any]]) {
@@ -231,22 +231,22 @@ object aion:
           val set2 = set2Eval.asInstanceOf[Set[BasicType]]
           val output = for {s1 <- set1; s2 <- set2} yield (s1, s2)
           return output.asInstanceOf[Set[BasicType]]
-        }
+
 
 
         // Creates a Macro.
         // An operation is mapped to a variable.
         // Only Macro is being created, not evaluated.
-        case Macro(macroName, operation) => {
+        case Macro(macroName, operation) =>
           bindingScope += (macroName -> operation)
-        }
+
 
         // Evaluates a Macro
         // Macro is executed here only. This is lazy evaluation.
-        case MacroEval(macroName) => {
+        case MacroEval(macroName) =>
           val returnIfAny = bindingScope(macroName).asInstanceOf[Expression].evaluate(scopeName)
           returnIfAny
-        }
+
       }
 
   @main def runAion: Unit =
@@ -256,9 +256,3 @@ object aion:
 
     // WRITE YOUR CODE HERE
     // TEST SUITE IS PRESENT IN aionTestSuite.scala
-
-    Assign("Set1", Val(Set(1, 2, 3))).evaluate()
-    Assign("Set2", Val(Set(2, 3, 4))).evaluate()
-    Assign("Set3", Val(Set(10, 20, 30))).evaluate()
-    Assign("Set4", Val(Set(20, 30, 40))).evaluate()
-    println(Union(Union(Var("Set1"), Var("Set2")), Union(Var("Set3"), Var("Set4"))).evaluate())
