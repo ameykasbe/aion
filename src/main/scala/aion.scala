@@ -48,7 +48,8 @@ object aion:
             bindingScope(name)
           }
           else {
-            null
+            logger.error(s"Name $name not assigned.")
+            System.exit(1)
           }
         }
 
@@ -265,8 +266,7 @@ object aion:
     Assign("Set1", Val(Set(1))).evaluate
     Assign("Set2", Val(Set(2))).evaluate
 
-    Macro("macro1", Union(Var("Set1"), Var("Set2"))).evaluate
-    println(MacroEval("macro1").evaluate)
+    println(Union(Var("Set"), Var("Set2")).evaluate)
 
 
 
