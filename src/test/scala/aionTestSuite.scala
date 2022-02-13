@@ -132,43 +132,29 @@ class aionTestSuite extends AnyFunSpec{
     // Test case 13 - Scope
     describe("Scope") {
       it("should only access variables of global scope") {
-        Assign("Set1", Val(Set())).evaluate()
-        Assign("Set2", Val(Set())).evaluate()
-        Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate()
-        Insert(Var("Set2"), Val(2), Val(3), Val(4)).evaluate()
+        Assign("Set1", Val(Set(1, 2, 3))).evaluate()
+        Assign("Set2", Val(Set(2, 3, 4))).evaluate()
         assert(Union(Var("Set1"), Var("Set2")).evaluate() == Set(1, 2, 3, 4))
       }
       it("should only access variables of one scope") {
-        Assign("Set1", Val(Set())).evaluate("a")
-        Assign("Set2", Val(Set())).evaluate("a")
-        Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate("a")
-        Insert(Var("Set2"), Val(2), Val(3), Val(4)).evaluate("a")
-        Assign("Set1", Val(Set())).evaluate("b")
-        Assign("Set2", Val(Set())).evaluate("b")
-        Insert(Var("Set1"), Val(10), Val(20), Val(30)).evaluate("b")
-        Insert(Var("Set2"), Val(20), Val(30), Val(40)).evaluate("b")
+        Assign("Set1", Val(Set(1, 2, 3))).evaluate("a")
+        Assign("Set2", Val(Set(2, 3, 4))).evaluate("a")
+        Assign("Set1", Val(Set(10, 20, 30))).evaluate("b")
+        Assign("Set2", Val(Set(20, 30 ,40))).evaluate("b")
         assert(Union(Var("Set1"), Var("Set2")).evaluate("a") == Set(1, 2, 3, 4))
       }
       it("should only access variables of the particular scope") {
-        Assign("Set1", Val(Set())).evaluate("a")
-        Assign("Set2", Val(Set())).evaluate("a")
-        Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate("a")
-        Insert(Var("Set2"), Val(2), Val(3), Val(4)).evaluate("a")
-        Assign("Set1", Val(Set())).evaluate("b")
-        Assign("Set2", Val(Set())).evaluate("b")
-        Insert(Var("Set1"), Val(10), Val(20), Val(30)).evaluate("b")
-        Insert(Var("Set2"), Val(20), Val(30), Val(40)).evaluate("b")
+        Assign("Set1", Val(Set(1, 2, 3))).evaluate("a")
+        Assign("Set2", Val(Set(2, 3, 4))).evaluate("a")
+        Assign("Set1", Val(Set(10, 20, 30))).evaluate("b")
+        Assign("Set2", Val(Set(20, 30 ,40))).evaluate("b")
         assert(Union(Var("Set1"), Var("Set2")).evaluate("b") == Set(10, 20, 30, 40))
       }
       it("should only access variables of the global scope if not found in a particular scope") {
-        Assign("Set1", Val(Set())).evaluate()
-        Assign("Set2", Val(Set())).evaluate()
-        Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate()
-        Insert(Var("Set2"), Val(2), Val(3), Val(4)).evaluate()
-        Assign("Set1", Val(Set())).evaluate("b")
-        Assign("Set2", Val(Set())).evaluate("b")
-        Insert(Var("Set1"), Val(10), Val(20), Val(30)).evaluate("b")
-        Insert(Var("Set2"), Val(20), Val(30), Val(40)).evaluate("b")
+        Assign("Set1", Val(Set(1, 2, 3))).evaluate()
+        Assign("Set2", Val(Set(2, 3, 4))).evaluate()
+        Assign("Set1", Val(Set(10, 20, 30))).evaluate("b")
+        Assign("Set2", Val(Set(20, 30, 40))).evaluate("b")
         assert(Union(Var("Set1"), Var("Set2")).evaluate("a") == Set(1, 2, 3, 4))
       }
     }
