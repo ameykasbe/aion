@@ -1,6 +1,7 @@
 import org.scalatest.funspec.AnyFunSpec
-
 import aion.Expression.*
+import aion.{BasicType, bindingScopeClassInstances}
+
 import scala.collection.mutable.Set
 
 class aionTestSuite extends AnyFunSpec{
@@ -170,5 +171,19 @@ class aionTestSuite extends AnyFunSpec{
       }
     }
 
+    // Test case 15 - Class definition and create new object and constructor
+    describe("Class definition and create new object and constructor") {
+      it("should return correct evaluation of constructor assign operation after creating new object") {
+        ClassDef("class1", Field("field1"), Constructor(Assign("field1", Val(2))), Method("method1", Union(Val(Set(1, 2, 3)), Val(Set(2, 3, 4))))).evaluate()
+        NewObject("object1", "class1").evaluate()
+        assert(GetField("object1", "field1").evaluate() === 2)
+      }
+    }
+  // Class def test
+  //    println(bindingScopeClass)
+
+  // New object test
+  //
+  //    println(bindingScopeClassInstances)
 
 }

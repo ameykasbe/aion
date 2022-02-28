@@ -40,7 +40,7 @@ object aion:
     case Method(name: String, instructions: Expression*)
     case NewObject(objectName: String, className: String)
     case Object(name: String)
-
+    case GetField(objectName: String, fieldName:String)
 
     def evaluate(scopeName: String = "global", bindingHM: scala.collection.mutable.Map[BasicType, BasicType] = bindingScope): BasicType =
     // Evaluates an expression. Accepts an argument scopeName representing scope with default value as global.
@@ -404,6 +404,20 @@ object aion:
           constructorInstructions.asInstanceOf[scala.collection.immutable.ArraySeq[Expression]].foreach(instruction => {
             instruction.evaluate(bindingHM = bindingScopeFields.asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]])
           })
+
+        case GetField(objectName, fieldName) =>
+          if(!bindingScopeClassInstances.contains(objectName)){
+            // If object name does not exist, pop error and exit the program.
+            logger.error(s"Object name $objectName does not exist.")
+            System.exit(1)
+          }
+          val temp = bindingScopeClassInstances(objectName).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("fields").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]
+          if (!temp.contains(fieldName)){
+            // If field name does not exist, pop error and exit the program.
+            logger.error(s"Field name $fieldName does not exist.")
+            System.exit(1)
+          }
+          temp(fieldName)
       }
 
   @main def runAion(): Unit =
@@ -414,9 +428,11 @@ object aion:
     // Class def test
     ClassDef("class1", Field("field1"), Constructor(Assign("field1", Val(2))), Method("method1", Union(Val(Set(1, 2, 3)), Val(Set(2, 3, 4))))).evaluate()
     println(bindingScopeClass)
+
+    // New object test
     NewObject("object1", "class1").evaluate()
-    println(bindingScopeClassInstances)
+    println(GetField("object1", "field1").evaluate())
 
 
-// WRITE YOUR CODE HERE
+    // WRITE YOUR CODE HERE
     // TEST SUITE IS PRESENT IN aionTestSuite.scala
