@@ -9,6 +9,7 @@ object aion:
   private val bindingScope: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
   private val bindingScopeClass: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
   private val bindingScopeClassInstances: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
+  private val accessMap: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
 
   // Define BasicType
   type BasicType = Any
@@ -41,8 +42,11 @@ object aion:
     case NewObject(objectName: String, className: String)
     case Object(name: String)
     case GetField(objectName: String, fieldName:String)
+    case Public(instruction: Expression)
+    case Private(instruction: Expression)
+    case Protected(instruction: Expression)
 
-    def evaluate(scopeName: String = "global", bindingHM: scala.collection.mutable.Map[BasicType, BasicType] = bindingScope): BasicType =
+    def evaluate(scopeName: String = "global", bindingHM: scala.collection.mutable.Map[BasicType, BasicType] = bindingScope, classNameEval: String = "default"): BasicType =
     // Evaluates an expression. Accepts an argument scopeName representing scope with default value as global.
       this.match{
 
@@ -274,6 +278,31 @@ object aion:
           // Binding scope for the methods of the class
           val thisClassBindingScopeMethods = scala.collection.mutable.Map[BasicType,BasicType]()
 
+          val privateMembers: scala.collection.mutable.Map[Any, Any] = scala.collection.mutable.Map()
+          val privateField:scala.collection.mutable.Set[Any] = scala.collection.mutable.Set()
+          val privateMethod:scala.collection.mutable.Set[Any] = scala.collection.mutable.Set()
+          privateMembers += ("fields" -> privateField)
+          privateMembers += ("methods" -> privateMethod)
+
+          val publicMembers: scala.collection.mutable.Map[Any, Any] = scala.collection.mutable.Map()
+          val publicField:scala.collection.mutable.Set[Any] = scala.collection.mutable.Set()
+          val publicMethod:scala.collection.mutable.Set[Any] = scala.collection.mutable.Set()
+          publicMembers += ("fields" -> publicField)
+          publicMembers += ("methods" -> publicMethod)
+
+          val protectedMembers: scala.collection.mutable.Map[Any, Any] = scala.collection.mutable.Map()
+          val protectedField:scala.collection.mutable.Set[Any] = scala.collection.mutable.Set()
+          val protectedMethod:scala.collection.mutable.Set[Any] = scala.collection.mutable.Set()
+          protectedMembers += ("fields" -> protectedField)
+          protectedMembers += ("methods" -> protectedMethod)
+
+          val classAccess: scala.collection.mutable.Map[Any, Any] = scala.collection.mutable.Map()
+          classAccess += ("private" -> privateMembers)
+          classAccess += ("public" -> publicMembers)
+          classAccess += ("protected" -> protectedMembers)
+
+          accessMap += (name -> classAccess)
+
           // Working on each member according to their type - Fields, Methods or Constructor
 //          println("Mem")
 //          println(members)
@@ -286,33 +315,37 @@ object aion:
             if (memberExp.isInstanceOf[Expression.Constructor]) {
               thisClassBindingScope("constructor") = memberExp
             }
+              else{
+              val memberExp2 = memberExp.evaluate(classNameEval = name).asInstanceOf[Expression]
+              // If member is a Field
+              if (memberExp2.isInstanceOf[Expression.Field]) {
+                val fieldName = memberExp2.evaluate()
 
-            // If member is a Field
-            else if (memberExp.isInstanceOf[Expression.Field]) {
-              val fieldName = memberExp.evaluate()
+                // If field name already exists, pop error and exit the program.
+                if(thisClassBindingScopeFields.contains(fieldName)){
+                  logger.error(s"Field name $fieldName already exist in the class to a class.")
+                  System.exit(1)
+                }
+                // If field does not exist, create fieldName binding to null.
+                thisClassBindingScopeFields += (fieldName -> null)
+              }
 
-              // If field name already exists, pop error and exit the program.
-              if(thisClassBindingScopeFields.contains(fieldName)){
-                logger.error(s"Field name $fieldName already exist in the class to a class.")
+              // If member is a Method
+              else if (memberExp2.isInstanceOf[Expression.Method]) {
+                // Evaluate method to get list of expressions, bind the list of expressions to the method
+                val methodInstructionsMapElement = memberExp2.evaluate().asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]
+                thisClassBindingScopeMethods .++= (methodInstructionsMapElement)
+
+                //// Logical overview
+                // thisClassBindingScopeMethods => { method1 => List[Expression}, method2 => List[Expression], method3 => List[Expression]...  }
+              }
+              else{
+                logger.error(s"A member of the class is not a constructor, field or method.")
                 System.exit(1)
               }
-              // If field does not exist, create fieldName binding to null.
-              thisClassBindingScopeFields += (fieldName -> null)
             }
 
-            // If member is a Method
-            else if (memberExp.isInstanceOf[Expression.Method]) {
-              // Evaluate method to get list of expressions, bind the list of expressions to the method
-              val methodInstructionsMapElement = memberExp.evaluate().asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]
-              thisClassBindingScopeMethods .++= (methodInstructionsMapElement)
 
-              //// Logical overview
-              // thisClassBindingScopeMethods => { method1 => List[Expression}, method2 => List[Expression], method3 => List[Expression]...  }
-            }
-            else{
-              logger.error(s"A member of the class is not a constructor, field or method.")
-              System.exit(1)
-            }
           })
 
           // Binding Fields binding scope to fields
@@ -417,7 +450,47 @@ object aion:
             logger.error(s"Field name $fieldName does not exist.")
             System.exit(1)
           }
+          val cname = bindingScopeClassInstances(objectName).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("className")
+          val privateFields = accessMap(cname).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("private").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.HashSet[Any]]
+          val publicFields = accessMap(cname).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("public").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.HashSet[Any]]
+          val protectedFields = accessMap(cname).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("protected").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.HashSet[Any]]
+
+          if (privateFields.contains(Field(fieldName))){
+            logger.error(s"Field name $fieldName can not be accessed.")
+            System.exit(1)
+          }
+          else if (protectedFields.contains(Field(fieldName))){
+            logger.error(s"Field name $fieldName can not be accessed.")
+            System.exit(1)
+          }
           temp(fieldName)
+
+        case Public(instruction: Expression) =>
+          if(instruction.isInstanceOf[Field]) {
+            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("public").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.Set[Any]] += instruction
+          }
+          else{
+            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("public").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("methods").asInstanceOf[scala.collection.mutable.Set[Any]] += instruction
+          }
+          instruction
+
+        case Private(instruction: Expression) =>
+          if(instruction.isInstanceOf[Field]) {
+            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("private").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.Set[Any]] += instruction
+          }
+          else{
+            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("private").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("methods").asInstanceOf[scala.collection.mutable.Set[Any]] += instruction
+          }
+          instruction
+
+        case Protected(instruction: Expression) =>
+          if(instruction.isInstanceOf[Field]) {
+            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("protectec").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.Set[Any]] += instruction
+          }
+          else{
+            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("protectec").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("methods").asInstanceOf[scala.collection.mutable.Set[Any]] += instruction
+          }
+          instruction
       }
 
   @main def runAion(): Unit =
@@ -425,11 +498,12 @@ object aion:
     // Importing all expressions
     import Expression.*
 
-    // Class def test
-    ClassDef("class1", Field("field1"), Constructor(Assign("field1", Val(2))), Method("method1", Union(Val(Set(1, 2, 3)), Val(Set(2, 3, 4))))).evaluate()
+    // Class def test, Public, private, protected
+    ClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(2))), Private(Method("method1", Union(Val(Set(1, 2, 3)), Val(Set(2, 3, 4)))))).evaluate()
     println(bindingScopeClass)
+    println(accessMap)
 
-    // New object test
+    // New object test and GetField test
     NewObject("object1", "class1").evaluate()
     println(GetField("object1", "field1").evaluate())
 
