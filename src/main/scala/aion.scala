@@ -42,16 +42,16 @@ object aion:
     case MacroEval(macroName: String) // Evaluates a Macro
 
     // Homework 2
-    case ClassDef(name: String, members: Expression*)
-    case Field(name: String)
-    case Constructor(instructions: Expression*)
-    case Method(name: String, instructions: Expression*)
-    case NewObject(objectName: String, className: String)
-    case Object(name: String)
-    case GetField(objectName: String, fieldName:String)
-    case Public(instruction: Expression)
-    case Private(instruction: Expression)
-    case Protected(instruction: Expression)
+    case ClassDef(name: String, members: Expression*) // Define a class
+    case Field(name: String) // Returns the name of the field. Provides wrapper for Fields
+    case Constructor(instructions: Expression*) // Returns the constructor instructions. Provides wrapper for instructions for constructor.
+    case Method(name: String, instructions: Expression*)  // Create a list of instructions (expressions)
+    case NewObject(objectName: String, className: String) // Create object
+    case Object(name: String) // Returns name of the object
+    case GetField(objectName: String, fieldName:String) // Get field value of any field of any instance
+    case Public(instruction: Expression) // Update Access Map with Public members
+    case Private(instruction: Expression) // Update Access Map with Private members
+    case Protected(instruction: Expression) // Update Access Map with Protected members
 
     def evaluate(scopeName: String = "global", bindingHM: scala.collection.mutable.Map[BasicType, BasicType] = bindingScope, classNameEval: String = "default"): BasicType =
     // Evaluates an expression. Accepts an argument scopeName representing scope with default value as global.
