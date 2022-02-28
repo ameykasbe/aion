@@ -543,6 +543,109 @@ There can not be an expression that evaluates to integerVariable's name integerV
   ```
   ```Output: Set(1, 2, 3, 4, 10, 20, 30, 40)```
 
+### Class Definition
+* In AION, class is defined with ClassDef.
+* Syntax
+  ```
+  ClassDef("className", Access(Field*), Constructor(), Access(Methods*) ).evaluate()
+  ```
+* Similar to variables, classes are also binded with strings. 
+
+#### Access Specifiers
+* AION supports three access specifiers
+  * Public
+  * Private
+  * Protected
+* The functionality is similar to the fundamental Object-Oriented principles.
+* All fields and methods should be encapsulated with ONE of the three access specifiers.
+* Fields and Methods can be placed in any order in the arguments.
+
+#### Fields
+* Fields should be wrapped with Field()
+
+#### Constructor
+* Only one constructor should be placed in the Class definition.
+* Constructor should be wrapped with Constructor()
+* Inside constructor, multiple instructions/exprssions can be written.
+
+#### Methods
+* Methods have a format
+* First argument is the method name
+* Second argument is the List of parameters
+* After second, arbitrary number of parameters can be passed. These specify the instructions.
+
+* Examples -
+  ```
+  ClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(1))), Public(Method("method1", List("p1", "p2"), Union(Var("p1"), Var("p2"))))).evaluate()
+  ```
+### Create Object
+* An instance of a particular class is created.
+* After creating instance, the constructor is executed for the instance. 
+* Syntax
+  ```
+  NewObject("objectName", "className").evaluate()
+  ```
+* Examples -
+  ```
+  ClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(1))), Public(Method("method1", List("p1", "p2"), Union(Var("p1"), Var("p2"))))).evaluate()
+  NewObject("object1", "class1").evaluate()
+  ```
+
+### Get Field
+* To get the data of a field.
+* Only the public data can be accessed.
+* If private or protected data is accessed, error message is displayed and the program exits. 
+* Syntax
+  ```
+  GetField("objectName", "fieldName").evaluate()
+  ```
+* Examples -
+  ```
+  ClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(1))), Public(Method("method1", List("p1", "p2"), Union(Var("p1"), Var("p2"))))).evaluate()
+  NewObject("object1", "class1").evaluate()
+  println(GetField("object1", "field1").evaluate())
+  ```
+  Output
+  ```
+  1
+  ```
+### Invoke Method
+* Any object's method can be invoked using InvokeMethod.
+* Syntax
+  ```
+  InvokeMethod("objectName", "methodName", parameters*).evaluate()
+  ```
+* It takes first argument a string which is the name of the object.
+* Second argument is method name
+* Then it takes a number of arguments equal to the number of arguments of the method. Basically, values are assigned to the arguments.   
+* Examples -
+  ```
+  ClassDef("class2", Public(Field("field2")), Constructor(Assign("field2", Val(1))), Public(Method("method2", List("p1", "p2"), Union(Var("p3"), Var("p4"))))).evaluate()
+  NewObject("object2", "class2").evaluate()
+  val result = InvokeMethod("object2", "method2", Assign("p3", Val(Set(1, 2, 3))), Assign("p4", Val(Set(1, 2, 4)))).evaluate()
+  ```
+  Output
+  ```
+  HashSet(1,2,3,4)
+  ```
+### Inheritance
+* Syntax
+  ```
+  ClassDef(child_class_definition) Extends "ParentClass"
+  ```
+  
+* In AION, inheritance works with `Extends` keyword.
+* The child class definition is executed first.
+* Then, all the Public and Protected members of the parent class is inherited in the child class.
+* Methods get the same definition.
+* Fields are initialized with null by default which can be updated.
+
+* Examples -
+  ```
+  ClassDef("parentClass", Public(Field("parentField")), Constructor(Assign("parentField", Val(1)))).evaluate()
+  ClassDef("childClass", Public(Field("childField")), Constructor(Assign("childField", Val(2)))) Extends "parentClass"
+  ```
+
 ## Files
 ### Source Code
 * Source code is present in `aion.scala`
