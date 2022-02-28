@@ -561,18 +561,20 @@ There can not be an expression that evaluates to integerVariable's name integerV
 * Fields and Methods can be placed in any order in the arguments.
 
 #### Fields
-* Fields should be wrapped with Field()
+* Fields should be wrapped with Field case.
+* Any number of fields can be added with no boundation on the order of the arguments.
 
 #### Constructor
 * Only one constructor should be placed in the Class definition.
 * Constructor should be wrapped with Constructor()
-* Inside constructor, multiple instructions/exprssions can be written.
+* Inside constructor, multiple instructions/expressions can be written.
+* No boundation on the order of constructor in the class definition.
 
 #### Methods
-* Methods have a format
-* First argument is the method name
-* Second argument is the List of parameters
-* After second, arbitrary number of parameters can be passed. These specify the instructions.
+* Methods have a particular format
+  * First argument is the method name
+  * Second argument is the List of parameters
+  * After second argument, arbitrary number of parameters can be passed. These specify the instructions.
 
 * Examples -
   ```
@@ -580,7 +582,7 @@ There can not be an expression that evaluates to integerVariable's name integerV
   ```
 ### Create Object
 * An instance of a particular class is created.
-* After creating instance, the constructor is executed for the instance. 
+* After creating instance, the constructor is executed for the instance.
 * Syntax
   ```
   NewObject("objectName", "className").evaluate()
@@ -592,7 +594,7 @@ There can not be an expression that evaluates to integerVariable's name integerV
   ```
 
 ### Get Field
-* To get the data of a field.
+* To get the data of a field of a particular object of a class.
 * Only the public data can be accessed.
 * If private or protected data is accessed, error message is displayed and the program exits. 
 * Syntax
@@ -616,9 +618,9 @@ There can not be an expression that evaluates to integerVariable's name integerV
   InvokeMethod("objectName", "methodName", parameters*).evaluate()
   ```
 * It takes first argument a string which is the name of the object.
-* Second argument is method name
-* Then it takes a number of arguments equal to the number of arguments of the method. Basically, values are assigned to the arguments.   
-* Examples -
+* Second argument is method name.
+* Then it takes a number of arguments equal to the number of arguments of the method. Internally, values are assigned to the arguments.   
+* Example -
   ```
   ClassDef("class2", Public(Field("field2")), Constructor(Assign("field2", Val(1))), Public(Method("method2", List("p1", "p2"), Union(Var("p3"), Var("p4"))))).evaluate()
   NewObject("object2", "class2").evaluate()
@@ -637,8 +639,10 @@ There can not be an expression that evaluates to integerVariable's name integerV
 * In AION, inheritance works with `Extends` keyword.
 * The child class definition is executed first.
 * Then, all the Public and Protected members of the parent class is inherited in the child class.
+* Private members of the parent class is not inherited to the child class.
 * Methods get the same definition.
 * Fields are initialized with null by default which can be updated.
+* Internally, inheritance creates a copy of the public and protected members of the parent class into the child class. 
 
 * Examples -
   ```
