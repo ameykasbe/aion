@@ -7,6 +7,7 @@ object aion:
   // Creating a private HashMap to store and map variables to values.
   // Represents memory of the DSL.
   private val bindingScope: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
+  private val bindingScopeClass: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
 
   // Define BasicType
   type BasicType = Any
@@ -31,13 +32,19 @@ object aion:
     case Macro(macroName: String, operand: Expression) // Creates a Macro
     case MacroEval(macroName: String) // Evaluates a Macro
 
+    // Homework 2
+    case ClassDef(name: String, members: Expression*)
+    case Field(name: String)
+    case Constructor(instructions: Expression*)
+    case Method(name: String, instructions: Expression*)
+
+
     def evaluate(scopeName: String = "global"): BasicType =
     // Evaluates an expression. Accepts an argument scopeName representing scope with default value as global.
-      this.match {
+      this.match{
 
         // Val(value): `Val` is the constant datatype for the DSL. `value` can be of any datatype of language Scala. Evaluating the expression `Val(value)` returns value.
         case Val(value) => value
-
         // Var(value): `Var` is the variable datatype for the DSL.
         // `name` is string of language Scala.
         // Evaluating the expression Var(name) returns the mapped value of Var(name) from HashMap.
@@ -47,6 +54,7 @@ object aion:
 
         // If scope is not global, before searching for bindings, the scope name is concatenated with the name and searched in the binding.
         // If not found in a particular scope, the binding is searched in global. If not found there, error is displayed and program is executed.
+
         case Var(name) =>
           if (scopeName == "global") {
             if (bindingScope.contains(name)) {
@@ -247,6 +255,100 @@ object aion:
           val returnIfAny = bindingScope(macroName).asInstanceOf[Expression].evaluate(scopeName)
           returnIfAny
 
+
+        case ClassDef(name, members*) =>
+          if(bindingScopeClass.contains(name)){
+            // If class already exists, pop error and exit the program.
+            logger.error(s"Class name $name already assigned to a class.")
+            System.exit(1)
+          }
+          // Binding scope of the class - contains all the fields, constructor and methods.
+          val thisClassBindingScope = scala.collection.mutable.Map[BasicType,BasicType]("fields" -> null, "constructor" -> null, "method" -> null )
+
+          // Binding scope for fields of this class
+          val thisClassBindingScopeFields = scala.collection.mutable.Map[BasicType,BasicType]()
+
+          // Binding scope for the methods of the class
+          val thisClassBindingScopeMethods = scala.collection.mutable.Map[BasicType,BasicType]()
+
+          // Working on each member according to their type - Fields, Methods or Constructor
+          members.foreach(member => {
+
+            // Member should be instance of the Expression type
+            val memberExp = member.asInstanceOf[Expression]
+
+            // If member is a Constructor
+            if (memberExp.isInstanceOf[Expression.Constructor]) {
+              thisClassBindingScope("constructor") = memberExp
+            }
+
+            // If member is a Field
+            else if (memberExp.isInstanceOf[Expression.Field]) {
+              val fieldName = memberExp.evaluate()
+
+              // If field name already exists, pop error and exit the program.
+              if(thisClassBindingScopeFields.contains(fieldName)){
+                logger.error(s"Field name $fieldName already exist in the class to a class.")
+                System.exit(1)
+              }
+              // If field does not exist, create fieldName binding to null.
+              thisClassBindingScopeFields += (fieldName -> null)
+            }
+
+            // If member is a Method
+            else if (memberExp.isInstanceOf[Expression.Method]) {
+              // Evaluate method to get list of expressions, bind the list of expressions to the method
+              val methodInstructionsMapElement = memberExp.evaluate().asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]
+              thisClassBindingScopeMethods .++= (methodInstructionsMapElement)
+
+              //// Logical overview
+              // thisClassBindingScopeMethods => { method1 => List[Expression}, method2 => List[Expression], method3 => List[Expression]...  }
+            }
+            else{
+              logger.error(s"A member of the class is not a constructor, field or method.")
+              System.exit(1)
+            }
+          })
+
+          // Binding Fields binding scope to fields
+          thisClassBindingScope("fields") = thisClassBindingScopeFields
+
+          // Binding Methods binding scope to fields
+          thisClassBindingScope("method") = thisClassBindingScopeMethods
+
+          // Binding class
+          bindingScopeClass += (name -> thisClassBindingScope)
+          true
+
+        //// Logical overview
+        // classBindingScope => {
+        //  class1 => {
+        //    constructor => expressions,
+        //    fields => {field1 => value1, field2 => value2},
+        //    methods => {method1 => List[Expression}, method2 => List[Expression], method3 => List[Expression]...}
+        //  },
+        //  class2 => {...}
+        //  class3 => {...}
+        //}
+
+
+        // Field
+        case Field(name) => name
+
+        // Method
+        case Method(name, instructions*) =>
+          // Create list of instructions
+          val instructionList = scala.collection.mutable.ListBuffer[BasicType]()
+
+          // Add instructions to instruction list of the method
+          instructions.foreach(instruction => {instructionList += instruction})
+
+          // Create a Map with single element - name (method's name) => instructionList
+          val instructionListMapSingleElement = scala.collection.mutable.Map[BasicType,BasicType]()
+          instructionListMapSingleElement += (name -> instructionList)
+          instructionListMapSingleElement
+
+
       }
 
   @main def runAion(): Unit =
@@ -254,5 +356,10 @@ object aion:
     // Importing all expressions
     import Expression.*
 
-    // WRITE YOUR CODE HERE
+    // Class def test
+    ClassDef("class1", Field("field1"), Constructor(Assign(Field("field1"), Val(2))), Method("method1", Union(Val(Set(1, 2, 3)), Val(Set(2, 3, 4))))).evaluate()
+    println(bindingScopeClass)
+
+
+// WRITE YOUR CODE HERE
     // TEST SUITE IS PRESENT IN aionTestSuite.scala
