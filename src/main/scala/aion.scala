@@ -288,30 +288,30 @@ object aion:
 
           // Update accessMap - class members with access specifiers
           // Private members
-          val privateMembers: scala.collection.mutable.Map[Any, Any] = scala.collection.mutable.Map()
-          val privateField:scala.collection.mutable.Set[Any] = scala.collection.mutable.Set()
-          val privateMethod:scala.collection.mutable.Set[Any] = scala.collection.mutable.Set()
+          val privateMembers: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
+          val privateField: scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          val privateMethod: scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
           privateMembers += ("fields" -> privateField)
           privateMembers += ("methods" -> privateMethod)
 
           // Public members
-          val publicMembers: scala.collection.mutable.Map[Any, Any] = scala.collection.mutable.Map()
-          val publicField:scala.collection.mutable.Set[Any] = scala.collection.mutable.Set()
-          val publicMethod:scala.collection.mutable.Set[Any] = scala.collection.mutable.Set()
+          val publicMembers: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
+          val publicField:scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          val publicMethod:scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
           publicMembers += ("fields" -> publicField)
           publicMembers += ("methods" -> publicMethod)
 
           // Protected members
-          val protectedMembers: scala.collection.mutable.Map[Any, Any] = scala.collection.mutable.Map()
-          val protectedField:scala.collection.mutable.Set[Any] = scala.collection.mutable.Set()
-          val protectedMethod:scala.collection.mutable.Set[Any] = scala.collection.mutable.Set()
+          val protectedMembers: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
+          val protectedField:scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          val protectedMethod:scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
           protectedMembers += ("fields" -> protectedField)
           protectedMembers += ("methods" -> protectedMethod)
 
           // Update access map
-          val classAccess: scala.collection.mutable.Map[Any, Any] = scala.collection.mutable.Map()
-          classAccess += ("private" -> privateMembers)
+          val classAccess: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
           classAccess += ("public" -> publicMembers)
+          classAccess += ("private" -> privateMembers)
           classAccess += ("protected" -> protectedMembers)
 
           // Maintain a access map to check if any member is public, private or protected.
