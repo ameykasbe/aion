@@ -46,7 +46,7 @@ object aion:
     case Field(name: String) // Returns the name of the field. Provides wrapper for Fields
     case Constructor(instructions: Expression*) // Returns the constructor instructions. Provides wrapper for instructions for constructor.
     case Method(name: String, params: List[BasicType], instructions: Expression*)  // Create a list of instructions (expressions)
-    case InvokeMethod(name: String, methodName: String, params: BasicType*) //Invoke a method for object name
+    case InvokeMethod(name: String, methodName: String, params: BasicType*) // Invoke a method of an object of a class
     case NewObject(objectName: String, className: String) // Create object
     case Object(name: String) // Returns name of the object
     case GetField(objectName: String, fieldName:String) // Get field value of any field of any instance
@@ -417,39 +417,40 @@ object aion:
 //          instructionListMapSingleElement += (name -> instructionList)
 //          instructionListMapSingleElement
 
-
+        // Invoke a method of an object of a class
         case InvokeMethod(name, methodName, params*) =>
+          // Check if object exists in bindings
           if(!bindingScopeClassInstances.contains(name)){
-//            Error
+            logger.error(s"Object name $name does not exist.")
+            System.exit(1)
           }
 
+          // Create a separate binding for the method for each parameter
           params.foreach(item => {
             val item1 = item.asInstanceOf[Expression]
             val objMap = bindingScopeClassInstances(name).
-              asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("methods").
-              asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]](methodName).asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("params").asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]
+              asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]](methodName).asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("params").asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]
             item1.evaluate(bindingHM = objMap)
           })
 
+          // Add fields into the separate binding as well
           bindingScopeClassInstances(name).asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("fields").asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]].
             foreach{
-              case (k, v) =>
+              case (key, value) =>
                 bindingScopeClassInstances(name).
-                  asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("methods").
-                  asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]](methodName).
-                  asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("params")
-                  .asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]] += (k -> v)
+                  asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]](methodName).asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("params").asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]] += (key -> value)
 
             }
           val tempMap = bindingScopeClassInstances(name).asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]](methodName).asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]
-          val op = tempMap("exps").asInstanceOf[scala.collection.mutable.Set[Any]]
+          val operations1 = tempMap("exps").asInstanceOf[scala.collection.mutable.Set[Any]]
           val variableMap = tempMap("params").asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]
 
-          op.foreach( z => {
-            val res = z.asInstanceOf[Expression].evaluate(bindingHM = variableMap)
-            if (z == op.last) {
-              // Returning the result of the last operation passed to the function.
-              return res
+          // Execute all the instructions of the method
+          // Return the output of the last instruction
+          operations1.foreach( operation => {
+            val lastResult = operation.asInstanceOf[Expression].evaluate(bindingHM = variableMap)
+            if (operation == operations1.last) {
+              return lastResult // returns last operation's result
             }
           }
           )
@@ -645,28 +646,6 @@ object aion:
     // Main function
     // Importing all expressions
     import Expression.*
-
-    // Class def test, Public, private, protected
-//    ClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(2))), Private(Method("method1", Union(Val(Set(1, 2, 3)), Val(Set(2, 3, 4)))))).evaluate(bindingHM = bindingHM)
-//    println(bindingScopeClass)
-//    println(accessMap)
-//
-//    // New object test and GetField test
-//    NewObject("object1", "class1").evaluate(bindingHM = bindingHM)
-//    println(GetField("object1", "field1").evaluate(bindingHM = bindingHM))
-//
-
-//    ClassDef("ParentClass", Public(Field("parentField")), Constructor(Assign("parentField", Val(2))), Public(Method("parentMethod", Difference(Val(Set(1, 2, 3)), Val(Set(2, 3, 4)))))).evaluate(bindingHM = bindingHM)
-//
-//    ClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(2))), Public(Method("method1", Union(Val(Set(1, 2, 3)), Val(Set(2, 3, 4)))))) Extends "ParentClass"
-//    println(bindingScopeClass)
-
-//    ClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(1))), Public(Method("method1", List("p1", "p2"), Union(Var("p1"), Var("p2"))))).evaluate()
-//    NewObject("object1", "class1").evaluate()
-//    val result = InvokeMethod("object1", "method1", Assign("p1", Val(Set(1, 2, 3))), Assign("p2", Val(Set(1, 2, 4)))).evaluate()
-//    print(result)
-//    println(GetField("object1", "field1").evaluate())
-
 
 
 
