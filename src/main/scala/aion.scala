@@ -661,11 +661,11 @@ object aion:
 //    ClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(2))), Public(Method("method1", Union(Val(Set(1, 2, 3)), Val(Set(2, 3, 4)))))) Extends "ParentClass"
 //    println(bindingScopeClass)
 
-    ClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(1))), Public(Method("method1", List("p1", "p2"), Union(Var("p1"), Var("p2"))))).evaluate()
-    NewObject("object1", "class1").evaluate()
-    val result = InvokeMethod("object1", "method1", Assign("p1", Val(Set(1, 2, 3))), Assign("p2", Val(Set(1, 2, 4)))).evaluate()
-    print(result)
-    println(GetField("object1", "field1").evaluate())
+//    ClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(1))), Public(Method("method1", List("p1", "p2"), Union(Var("p1"), Var("p2"))))).evaluate()
+//    NewObject("object1", "class1").evaluate()
+//    val result = InvokeMethod("object1", "method1", Assign("p1", Val(Set(1, 2, 3))), Assign("p2", Val(Set(1, 2, 4)))).evaluate()
+//    print(result)
+//    println(GetField("object1", "field1").evaluate())
 
 
 

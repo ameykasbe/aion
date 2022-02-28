@@ -270,13 +270,61 @@ The intention of the project is to create a Domain Specific Language (DSL) for u
             <td>
             </td>
         </tr>
-<tr>
+        <tr>
             <td><b>Class Definition</b><br><i>Returns: null </i></td>
             <td>
-                <b>ClassDef("className", ).evaluate()</b><br>
+                <b>ClassDef("className", Access(Field*), Constructor(), Access(Methods*) ).evaluate()</b><br>
                 <i>
                     Examples - <br>
-                    ClassDef("ParentClass", Public(Field("parentField")), Constructor(Assign("parentField", Val(2))), Public(Method("parentMethod", Difference(Val(Set(1, 2, 3)), Val(Set(2, 3, 4)))))).evaluate()
+                    Kindly check Semantics for example
+                </i>
+            </td>
+            <td>
+            </td>
+        </tr>
+        <tr>
+            <td><b>Create Object</b><br><i>Returns: null </i></td>
+            <td>
+                <b>NewObject("objectName", "className").evaluate()</b><br>
+                <i>
+                    Examples - <br>
+                    Kindly check Semantics for example
+                </i>
+            </td>
+            <td>
+            </td>
+        </tr>
+        <tr>
+            <td><b>Invoke Method</b><br><i>Returns: output (Any) </i></td>
+            <td>
+                <b>InvokeMethod("objectName", "methodName", parameters*).evaluate()</b><br>
+                <i>
+                    Examples - <br>
+                    Kindly check Semantics for example
+                </i>
+            </td>
+            <td>
+            </td>
+        </tr>
+        <tr>
+            <td><b>Get Field</b><br><i>Returns: field value (Any) </i></td>
+            <td>
+                <b>GetField("objectName", "fieldName").evaluate()</b><br>
+                <i>
+                    Examples - <br>
+                    Kindly check Semantics for example
+                </i>
+            </td>
+            <td>
+            </td>
+        </tr>
+        <tr>
+            <td><b>Inheritance</b><br><i>Returns: null </i></td>
+            <td>
+                <b>ClassDef(child_class_definition) Extends "ParentClass"</b><br>
+                <i>
+                    Examples - <br>
+                    Kindly check Semantics for example
                 </i>
             </td>
             <td>
