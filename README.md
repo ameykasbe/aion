@@ -270,6 +270,18 @@ The intention of the project is to create a Domain Specific Language (DSL) for u
             <td>
             </td>
         </tr>
+<tr>
+            <td><b>Class Definition</b><br><i>Returns: null </i></td>
+            <td>
+                <b>ClassDef("className", ).evaluate()</b><br>
+                <i>
+                    Examples - <br>
+                    ClassDef("ParentClass", Public(Field("parentField")), Constructor(Assign("parentField", Val(2))), Public(Method("parentMethod", Difference(Val(Set(1, 2, 3)), Val(Set(2, 3, 4)))))).evaluate()
+                </i>
+            </td>
+            <td>
+            </td>
+        </tr>
     </tbody>
 </table>
 

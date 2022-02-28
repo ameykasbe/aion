@@ -45,7 +45,8 @@ object aion:
     case ClassDef(name: String, members: Expression*) // Define a class
     case Field(name: String) // Returns the name of the field. Provides wrapper for Fields
     case Constructor(instructions: Expression*) // Returns the constructor instructions. Provides wrapper for instructions for constructor.
-    case Method(name: String, instructions: Expression*)  // Create a list of instructions (expressions)
+    case Method(name: String, params: List[BasicType], instructions: Expression*)  // Create a list of instructions (expressions)
+    case InvokeMethod(name: String, methodName: String, params: BasicType*) //Invoke a method for object name
     case NewObject(objectName: String, className: String) // Create object
     case Object(name: String) // Returns name of the object
     case GetField(objectName: String, fieldName:String) // Get field value of any field of any instance
@@ -54,7 +55,7 @@ object aion:
     case Protected(instruction: Expression) // Update Access Map with Protected members
 
     def evaluate(scopeName: String = "global", bindingHM: scala.collection.mutable.Map[BasicType, BasicType] = bindingScope, classNameEval: String = "default"): BasicType =
-    // Evaluates an expression. Accepts an argument scopeName representing scope with default value as global.
+    // Evaluates an expression. Accepts an argument scopeName, bindingHM = bindingHM representing scope with default value as global.
       this match{
 
         // Val(value): `Val` is the constant datatype for the DSL. `value` can be of any datatype of language Scala. Evaluating the expression `Val(value)` returns value.
@@ -80,7 +81,7 @@ object aion:
             }
           }
           else{
-            val varNameWScope = scopeName + name
+            val varNameWScope = scopeName  + name
             if (bindingHM.contains(varNameWScope)) {
               bindingHM(varNameWScope)
             }
@@ -89,7 +90,7 @@ object aion:
                 bindingHM(name)
               }
               else{
-                logger.error(s"Name $name not assigned in scope $scopeName or in global.")
+                logger.error(s"Name $name not assigned in scope $scopeName, bindingHM = bindingHM or in global.")
                 System.exit(1)
               }
             }
@@ -104,23 +105,23 @@ object aion:
             System.exit(1)
           }
           if (scopeName == "global") {
-            bindingHM += (name -> value.evaluate(scopeName))
+            bindingHM += (name -> value.evaluate(scopeName, bindingHM = bindingHM))
           }
           else{
             val varNameWScope = scopeName + name
-            bindingHM += (varNameWScope -> value.evaluate(scopeName))
+            bindingHM += (varNameWScope -> value.evaluate(scopeName, bindingHM = bindingHM))
           }
 
 
         // Inserts a number of DSL expressions into a set. First the expressions are evaluated and then inserted into the set. If the set does not exist in HashMap, error is displayed and program is exited.
         case Insert(setName, value*) =>
-          val evaluatedSetName = setName.evaluate(scopeName)
+          val evaluatedSetName = setName.evaluate(scopeName, bindingHM = bindingHM)
           if (!evaluatedSetName.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName is not a set.")
             System.exit(1)
           }
           for {v <- value} {
-            val evaluatedValue = v.evaluate(scopeName)
+            val evaluatedValue = v.evaluate(scopeName, bindingHM = bindingHM)
             bindingHM.update(evaluatedSetName, evaluatedSetName.asInstanceOf[scala.collection.mutable.Set[BasicType]] += evaluatedValue)
           }
 
@@ -128,8 +129,8 @@ object aion:
         // Checks if a value is present in a set.
         // Returns a boolean if the value is present.
         case Check(setName, value) =>
-          val evaluatedSetName = setName.evaluate(scopeName)
-          val evaluatedValue = value.evaluate(scopeName)
+          val evaluatedSetName = setName.evaluate(scopeName, bindingHM = bindingHM)
+          val evaluatedValue = value.evaluate(scopeName, bindingHM = bindingHM)
           if (!evaluatedSetName.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName is not a set.")
             System.exit(1)
@@ -143,8 +144,8 @@ object aion:
         // Deletes an DSL expression from a set.
         // If the set does not exist in HashMap, error is displayed and program is exited.
         case Delete(setName, value) =>
-          val evaluatedSetName = setName.evaluate(scopeName)
-          val evaluatedValue = value.evaluate(scopeName)
+          val evaluatedSetName = setName.evaluate(scopeName, bindingHM = bindingHM)
+          val evaluatedValue = value.evaluate(scopeName, bindingHM = bindingHM)
           if (!evaluatedSetName.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName is not a set.")
             System.exit(1)
@@ -164,8 +165,8 @@ object aion:
         // The sets can be expressions. The expressions are evaluated first and then their union is returned.
         // If any of the sets does not exist in HashMap, error is displayed and program is exited.
         case Union(setName1, setName2) =>
-          val set1Eval = setName1.evaluate(scopeName)
-          val set2Eval = setName2.evaluate(scopeName)
+          val set1Eval = setName1.evaluate(scopeName, bindingHM = bindingHM)
+          val set2Eval = setName2.evaluate(scopeName, bindingHM = bindingHM)
 
           if (!set1Eval.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName1 is not a set.")
@@ -186,8 +187,8 @@ object aion:
         // The sets can be expressions. The expressions are evaluated first and then their intersection is returned.
         // If any of the sets does not exist in HashMap, error is displayed and program is exited.
         case Intersect(setName1, setName2) =>
-          val set1Eval = setName1.evaluate(scopeName)
-          val set2Eval = setName2.evaluate(scopeName)
+          val set1Eval = setName1.evaluate(scopeName, bindingHM = bindingHM)
+          val set2Eval = setName2.evaluate(scopeName, bindingHM = bindingHM)
           if (!set1Eval.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName1 is not a set.")
             System.exit(1)
@@ -207,8 +208,8 @@ object aion:
         // The sets can be expressions. The expressions are evaluated first and then their set difference is returned.
         // If any of the sets does not exist in HashMap, error is displayed and program is exited.
         case Difference(setName1, setName2) =>
-          val set1Eval = setName1.evaluate(scopeName)
-          val set2Eval = setName2.evaluate(scopeName)
+          val set1Eval = setName1.evaluate(scopeName, bindingHM = bindingHM)
+          val set2Eval = setName2.evaluate(scopeName, bindingHM = bindingHM)
           if (!set1Eval.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName1 is not a set.")
             System.exit(1)
@@ -230,7 +231,7 @@ object aion:
         case SymmetricDifference(set1, set2) =>
           val diff1 = Difference(set1, set2)
           val diff2 = Difference(set2, set1)
-          Union(diff1, diff2).evaluate(scopeName)
+          Union(diff1, diff2).evaluate(scopeName, bindingHM = bindingHM)
 
 
         // Cartesian product or Cross product of A and B, denoted A × B, is the set whose members are all possible ordered pairs (a, b), where a is a member of A and b is a member of B.
@@ -238,8 +239,8 @@ object aion:
         // The sets can be expressions. The expressions are evaluated first and then their cross product is returned.
         // If any of the sets does not exist in HashMap, error is displayed and program is exited.
         case CrossProduct(setName1: Expression, setName2: Expression) =>
-          val set1Eval = setName1.evaluate(scopeName)
-          val set2Eval = setName2.evaluate(scopeName)
+          val set1Eval = setName1.evaluate(scopeName, bindingHM = bindingHM)
+          val set2Eval = setName2.evaluate(scopeName, bindingHM = bindingHM)
           if (!set1Eval.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName1 is not a set.")
             System.exit(1)
@@ -266,7 +267,7 @@ object aion:
         // Evaluates a Macro
         // Macro is executed here only. This is lazy evaluation.
         case MacroEval(macroName) =>
-          val returnIfAny = bindingHM(macroName).asInstanceOf[Expression].evaluate(scopeName)
+          val returnIfAny = bindingHM(macroName).asInstanceOf[Expression].evaluate(scopeName, bindingHM = bindingHM)
           returnIfAny
 
         // Define a class
@@ -331,7 +332,7 @@ object aion:
               val memberExp2 = memberExp.evaluate(classNameEval = name).asInstanceOf[Expression] // Populate access specifier set.
               // If member is a Field
               if (memberExp2.isInstanceOf[Expression.Field]) {
-                val fieldName = memberExp2.evaluate()
+                val fieldName = memberExp2.evaluate(bindingHM = bindingHM)
 
                 // If field name already exists, pop error and exit the program.
                 if(thisClassBindingScopeFields.contains(fieldName)){
@@ -345,7 +346,7 @@ object aion:
               // If member is a Method
               else if (memberExp2.isInstanceOf[Expression.Method]) {
                 // Evaluate method to get list of expressions, bind the list of expressions to the method
-                val methodInstructionsMapElement = memberExp2.evaluate().asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]
+                val methodInstructionsMapElement = memberExp2.evaluate(bindingHM = bindingHM).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]
                 thisClassBindingScopeMethods .++= (methodInstructionsMapElement)
 
                 //// Logical overview
@@ -391,17 +392,67 @@ object aion:
 
         // Method case
         // Create a list of instructions (expressions)
-        case Method(name, instructions*) =>
+        case Method(name, params, instructions*) =>
+          val tempMethodMap: scala.collection.mutable.Map[BasicType, BasicType] = Map("params" -> null, "exps" -> null)
+          val methodMap: scala.collection.mutable.Map[BasicType, BasicType] = Map()
+
+
           // Create list of instructions
-          val instructionList = scala.collection.mutable.ListBuffer[BasicType]()
+          val instructionList = scala.collection.mutable.Set[BasicType]()
 
           // Add instructions to instruction list of the method
           instructions.foreach(instruction => {instructionList += instruction})
+          val tempVarMap = scala.collection.mutable.Map[Any,Any]()
+          params.foreach(i => {
+            tempVarMap += (i -> null)
+          })
 
-          // Create a Map with single element - name (method's name) => instructionList
-          val instructionListMapSingleElement = scala.collection.mutable.Map[BasicType,BasicType]()
-          instructionListMapSingleElement += (name -> instructionList)
-          instructionListMapSingleElement
+          tempMethodMap("exps") = instructionList
+          tempMethodMap += ("params" -> tempVarMap)
+          methodMap += (name -> tempMethodMap)
+          methodMap
+
+//          // Create a Map with single element - name (method's name) => instructionList
+//          val instructionListMapSingleElement = scala.collection.mutable.Map[BasicType,BasicType]()
+//          instructionListMapSingleElement += (name -> instructionList)
+//          instructionListMapSingleElement
+
+
+        case InvokeMethod(name, methodName, params*) =>
+          if(!bindingScopeClassInstances.contains(name)){
+//            Error
+          }
+
+          params.foreach(item => {
+            val item1 = item.asInstanceOf[Expression]
+            val objMap = bindingScopeClassInstances(name).
+              asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("methods").
+              asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]](methodName).asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("params").asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]
+            item1.evaluate(bindingHM = objMap)
+          })
+
+          bindingScopeClassInstances(name).asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("fields").asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]].
+            foreach{
+              case (k, v) =>
+                bindingScopeClassInstances(name).
+                  asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("methods").
+                  asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]](methodName).
+                  asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("params")
+                  .asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]] += (k -> v)
+
+            }
+          val tempMap = bindingScopeClassInstances(name).asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]](methodName).asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]
+          val op = tempMap("exps").asInstanceOf[scala.collection.mutable.Set[Any]]
+          val variableMap = tempMap("params").asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]
+
+          op.foreach( z => {
+            val res = z.asInstanceOf[Expression].evaluate(bindingHM = variableMap)
+            if (z == op.last) {
+              // Returning the result of the last operation passed to the function.
+              return res
+            }
+          }
+          )
 
         // Object case
         case Object(name) => name
@@ -446,7 +497,7 @@ object aion:
 
           // Execute constructor
           // Get constructor instructions
-          val constructorInstructions = bindingScopeClass(className).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("constructor").asInstanceOf[Expression].evaluate()
+          val constructorInstructions = bindingScopeClass(className).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("constructor").asInstanceOf[Expression].evaluate(bindingHM = bindingHM)
 
           // Get binding scope - Fields map of the object from the object-class Map
           val bindingScopeFields = bindingScopeClassInstances(objectName).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("fields")
@@ -497,7 +548,7 @@ object aion:
         // Update Access Map with Public members
         case Public(instruction: Expression) =>
           if(instruction.isInstanceOf[Field]) {
-            val instructionName = instruction.evaluate()
+            val instructionName = instruction.evaluate(bindingHM = bindingHM)
             accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("public").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.Set[Any]] += instructionName
           }
           else{
@@ -510,7 +561,7 @@ object aion:
         // Update Access Map with Private members
         case Private(instruction: Expression) =>
           if(instruction.isInstanceOf[Field]) {
-            val instructionName = instruction.evaluate()
+            val instructionName = instruction.evaluate(bindingHM = bindingHM)
             accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("private").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.Set[Any]] += instructionName
           }
           else{
@@ -523,7 +574,7 @@ object aion:
         //   Update Access Map with Protected members
         case Protected(instruction: Expression) =>
           if(instruction.isInstanceOf[Field]) {
-            val instructionName = instruction.evaluate()
+            val instructionName = instruction.evaluate(bindingHM = bindingHM)
             accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("protected").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.Set[Any]] += instructionName
           }
           else{
@@ -587,7 +638,7 @@ object aion:
     // To extract method name from Method Expression case
     def methodEval() =
       this match{
-        case Method(name, instructions*) => name
+        case Method(name, params, instructions*) => name
       }
 
   @main def runAion(): Unit =
@@ -596,18 +647,28 @@ object aion:
     import Expression.*
 
     // Class def test, Public, private, protected
-//    ClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(2))), Private(Method("method1", Union(Val(Set(1, 2, 3)), Val(Set(2, 3, 4)))))).evaluate()
+//    ClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(2))), Private(Method("method1", Union(Val(Set(1, 2, 3)), Val(Set(2, 3, 4)))))).evaluate(bindingHM = bindingHM)
 //    println(bindingScopeClass)
 //    println(accessMap)
 //
 //    // New object test and GetField test
-//    NewObject("object1", "class1").evaluate()
-//    println(GetField("object1", "field1").evaluate())
+//    NewObject("object1", "class1").evaluate(bindingHM = bindingHM)
+//    println(GetField("object1", "field1").evaluate(bindingHM = bindingHM))
 //
 
-    ClassDef("ParentClass", Public(Field("parentField")), Constructor(Assign("parentField", Val(2))), Public(Method("parentMethod", Difference(Val(Set(1, 2, 3)), Val(Set(2, 3, 4)))))).evaluate()
+//    ClassDef("ParentClass", Public(Field("parentField")), Constructor(Assign("parentField", Val(2))), Public(Method("parentMethod", Difference(Val(Set(1, 2, 3)), Val(Set(2, 3, 4)))))).evaluate(bindingHM = bindingHM)
+//
+//    ClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(2))), Public(Method("method1", Union(Val(Set(1, 2, 3)), Val(Set(2, 3, 4)))))) Extends "ParentClass"
+//    println(bindingScopeClass)
 
-    ClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(2))), Public(Method("method1", Union(Val(Set(1, 2, 3)), Val(Set(2, 3, 4)))))) Extends "ParentClass"
-    println(bindingScopeClass)
+    ClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(1))), Public(Method("method1", List("p1", "p2"), Union(Var("p1"), Var("p2"))))).evaluate()
+    NewObject("object1", "class1").evaluate()
+    val result = InvokeMethod("object1", "method1", Assign("p1", Val(Set(1, 2, 3))), Assign("p2", Val(Set(1, 2, 4)))).evaluate()
+    print(result)
+    println(GetField("object1", "field1").evaluate())
+
+
+
+
     // WRITE YOUR CODE HERE
     // TEST SUITE IS PRESENT IN aionTestSuite.scala
