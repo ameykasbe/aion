@@ -5,10 +5,17 @@ import scala.runtime.BoxedUnit
 
 object aion:
   // Creating a private HashMap to store and map variables to values.
+
   // Represents memory of the DSL.
   private val bindingScope: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
+
+  // Binding scope to store Class members
   private val bindingScopeClass: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
+
+  // Binding scope for instances of classes
   private val bindingScopeClassInstances: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
+
+  // Access map to check access specifiers
   private val accessMap: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
 
   // Define BasicType
@@ -278,34 +285,38 @@ object aion:
           // Binding scope for the methods of the class
           val thisClassBindingScopeMethods = scala.collection.mutable.Map[BasicType,BasicType]()
 
+          // Update accessMap - class members with access specifiers
+          // Private members
           val privateMembers: scala.collection.mutable.Map[Any, Any] = scala.collection.mutable.Map()
           val privateField:scala.collection.mutable.Set[Any] = scala.collection.mutable.Set()
           val privateMethod:scala.collection.mutable.Set[Any] = scala.collection.mutable.Set()
           privateMembers += ("fields" -> privateField)
           privateMembers += ("methods" -> privateMethod)
 
+          // Public members
           val publicMembers: scala.collection.mutable.Map[Any, Any] = scala.collection.mutable.Map()
           val publicField:scala.collection.mutable.Set[Any] = scala.collection.mutable.Set()
           val publicMethod:scala.collection.mutable.Set[Any] = scala.collection.mutable.Set()
           publicMembers += ("fields" -> publicField)
           publicMembers += ("methods" -> publicMethod)
 
+          // Protected members
           val protectedMembers: scala.collection.mutable.Map[Any, Any] = scala.collection.mutable.Map()
           val protectedField:scala.collection.mutable.Set[Any] = scala.collection.mutable.Set()
           val protectedMethod:scala.collection.mutable.Set[Any] = scala.collection.mutable.Set()
           protectedMembers += ("fields" -> protectedField)
           protectedMembers += ("methods" -> protectedMethod)
 
+          // Update access map
           val classAccess: scala.collection.mutable.Map[Any, Any] = scala.collection.mutable.Map()
           classAccess += ("private" -> privateMembers)
           classAccess += ("public" -> publicMembers)
           classAccess += ("protected" -> protectedMembers)
 
           accessMap += (name -> classAccess)
+          // The access specifier set of access map is currently empty. When the instructions are evaluated, the specifier set will be propulated.
 
           // Working on each member according to their type - Fields, Methods or Constructor
-//          println("Mem")
-//          println(members)
           members.foreach(member => {
 
             // Member should be instance of the Expression type
@@ -316,7 +327,7 @@ object aion:
               thisClassBindingScope("constructor") = memberExp
             }
               else{
-              val memberExp2 = memberExp.evaluate(classNameEval = name).asInstanceOf[Expression]
+              val memberExp2 = memberExp.evaluate(classNameEval = name).asInstanceOf[Expression] // Populate access specifier set.
               // If member is a Field
               if (memberExp2.isInstanceOf[Expression.Field]) {
                 val fieldName = memberExp2.evaluate()
@@ -450,16 +461,28 @@ object aion:
             logger.error(s"Field name $fieldName does not exist.")
             System.exit(1)
           }
+          // Get class name
           val cname = bindingScopeClassInstances(objectName).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("className")
+
+          // Get class private fields
           val privateFields = accessMap(cname).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("private").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.HashSet[Any]]
+
+          // Get class public fields
           val publicFields = accessMap(cname).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("public").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.HashSet[Any]]
+
+          // Get class protected fields
           val protectedFields = accessMap(cname).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("protected").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.HashSet[Any]]
 
-          if (privateFields.contains(Field(fieldName))){
+//          println(privateFields)
+//          println(publicFields)
+//          println(accessMap(cname).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("private").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("methods").asInstanceOf[scala.collection.mutable.HashSet[Any]])
+//          println(accessMap(cname).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("public").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("methods").asInstanceOf[scala.collection.mutable.HashSet[Any]])
+
+          if (privateFields.contains(fieldName)){
             logger.error(s"Field name $fieldName can not be accessed.")
             System.exit(1)
           }
-          else if (protectedFields.contains(Field(fieldName))){
+          else if (protectedFields.contains(fieldName)){
             logger.error(s"Field name $fieldName can not be accessed.")
             System.exit(1)
           }
@@ -467,31 +490,43 @@ object aion:
 
         case Public(instruction: Expression) =>
           if(instruction.isInstanceOf[Field]) {
-            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("public").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.Set[Any]] += instruction
+            val instructionName = instruction.evaluate()
+            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("public").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.Set[Any]] += instructionName
           }
           else{
-            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("public").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("methods").asInstanceOf[scala.collection.mutable.Set[Any]] += instruction
+            val instructionName = instruction.methodEval()
+            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("public").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("methods").asInstanceOf[scala.collection.mutable.Set[Any]] += instructionName
           }
           instruction
 
         case Private(instruction: Expression) =>
           if(instruction.isInstanceOf[Field]) {
-            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("private").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.Set[Any]] += instruction
+            val instructionName = instruction.evaluate()
+            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("private").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.Set[Any]] += instructionName
           }
           else{
-            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("private").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("methods").asInstanceOf[scala.collection.mutable.Set[Any]] += instruction
+            val instructionName = instruction.methodEval()
+            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("private").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("methods").asInstanceOf[scala.collection.mutable.Set[Any]] += instructionName
           }
           instruction
 
         case Protected(instruction: Expression) =>
           if(instruction.isInstanceOf[Field]) {
-            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("protectec").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.Set[Any]] += instruction
+            val instructionName = instruction.evaluate()
+            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("protected").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.Set[Any]] += instructionName
           }
           else{
-            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("protectec").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("methods").asInstanceOf[scala.collection.mutable.Set[Any]] += instruction
+            val instructionName = instruction.methodEval()
+            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("protected").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("methods").asInstanceOf[scala.collection.mutable.Set[Any]] += instructionName
           }
           instruction
       }
+
+    def methodEval() =
+      this match{
+        case Method(name, instructions*) => name
+      }
+
 
   @main def runAion(): Unit =
     // Main function
