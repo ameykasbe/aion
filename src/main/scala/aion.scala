@@ -8,6 +8,7 @@ object aion:
   // Represents memory of the DSL.
   private val bindingScope: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
   private val bindingScopeClass: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
+  private val bindingScopeClassInstances: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
 
   // Define BasicType
   type BasicType = Any
@@ -37,9 +38,11 @@ object aion:
     case Field(name: String)
     case Constructor(instructions: Expression*)
     case Method(name: String, instructions: Expression*)
+    case NewObject(objectName: String, className: String)
+    case Object(name: String)
 
 
-    def evaluate(scopeName: String = "global"): BasicType =
+    def evaluate(scopeName: String = "global", bindingHM: scala.collection.mutable.Map[BasicType, BasicType] = bindingScope): BasicType =
     // Evaluates an expression. Accepts an argument scopeName representing scope with default value as global.
       this.match{
 
@@ -57,8 +60,8 @@ object aion:
 
         case Var(name) =>
           if (scopeName == "global") {
-            if (bindingScope.contains(name)) {
-              bindingScope(name)
+            if (bindingHM.contains(name)) {
+              bindingHM(name)
             }
             else {
               logger.error(s"Name $name not assigned.")
@@ -67,12 +70,12 @@ object aion:
           }
           else{
             val varNameWScope = scopeName + name
-            if (bindingScope.contains(varNameWScope)) {
-              bindingScope(varNameWScope)
+            if (bindingHM.contains(varNameWScope)) {
+              bindingHM(varNameWScope)
             }
             else {
-              if (bindingScope.contains(name)) {
-                bindingScope(name)
+              if (bindingHM.contains(name)) {
+                bindingHM(name)
               }
               else{
                 logger.error(s"Name $name not assigned in scope $scopeName or in global.")
@@ -90,11 +93,11 @@ object aion:
             System.exit(1)
           }
           if (scopeName == "global") {
-            bindingScope += (name -> value.evaluate(scopeName))
+            bindingHM += (name -> value.evaluate(scopeName))
           }
           else{
             val varNameWScope = scopeName + name
-            bindingScope += (varNameWScope -> value.evaluate(scopeName))
+            bindingHM += (varNameWScope -> value.evaluate(scopeName))
           }
 
 
@@ -107,7 +110,7 @@ object aion:
           }
           for {v <- value} {
             val evaluatedValue = v.evaluate(scopeName)
-            bindingScope.update(evaluatedSetName, evaluatedSetName.asInstanceOf[scala.collection.mutable.Set[BasicType]] += evaluatedValue)
+            bindingHM.update(evaluatedSetName, evaluatedSetName.asInstanceOf[scala.collection.mutable.Set[BasicType]] += evaluatedValue)
           }
 
 
@@ -136,7 +139,7 @@ object aion:
             System.exit(1)
           }
           if (evaluatedSetName.asInstanceOf[scala.collection.mutable.Set[BasicType]].contains(evaluatedValue)) {
-            bindingScope.update(evaluatedSetName, evaluatedSetName.asInstanceOf[scala.collection.mutable.Set[BasicType]] -= evaluatedValue)
+            bindingHM.update(evaluatedSetName, evaluatedSetName.asInstanceOf[scala.collection.mutable.Set[BasicType]] -= evaluatedValue)
           }
           else{
             logger.error(s"Name $setName does not contain $value.")
@@ -246,13 +249,13 @@ object aion:
         // An operation is mapped to a variable.
         // Only Macro is being created, not evaluated.
         case Macro(macroName, operation) =>
-          bindingScope += (macroName -> operation)
+          bindingHM += (macroName -> operation)
 
 
         // Evaluates a Macro
         // Macro is executed here only. This is lazy evaluation.
         case MacroEval(macroName) =>
-          val returnIfAny = bindingScope(macroName).asInstanceOf[Expression].evaluate(scopeName)
+          val returnIfAny = bindingHM(macroName).asInstanceOf[Expression].evaluate(scopeName)
           returnIfAny
 
 
@@ -272,6 +275,8 @@ object aion:
           val thisClassBindingScopeMethods = scala.collection.mutable.Map[BasicType,BasicType]()
 
           // Working on each member according to their type - Fields, Methods or Constructor
+//          println("Mem")
+//          println(members)
           members.foreach(member => {
 
             // Member should be instance of the Expression type
@@ -314,7 +319,7 @@ object aion:
           thisClassBindingScope("fields") = thisClassBindingScopeFields
 
           // Binding Methods binding scope to fields
-          thisClassBindingScope("method") = thisClassBindingScopeMethods
+          thisClassBindingScope("methods") = thisClassBindingScopeMethods
 
           // Binding class
           bindingScopeClass += (name -> thisClassBindingScope)
@@ -325,14 +330,14 @@ object aion:
         //  class1 => {
         //    constructor => expressions,
         //    fields => {field1 => value1, field2 => value2},
-        //    methods => {method1 => List[Expression}, method2 => List[Expression], method3 => List[Expression]...}
+        //    methods => {method1 => List[Expression], method2 => List[Expression], method3 => List[Expression]...}
         //  },
         //  class2 => {...}
         //  class3 => {...}
         //}
 
 
-        // Field
+        // Field case
         case Field(name) => name
 
         // Method
@@ -348,7 +353,57 @@ object aion:
           instructionListMapSingleElement += (name -> instructionList)
           instructionListMapSingleElement
 
+        // Object case
+        case Object(name) => name
 
+        // Constructor
+        case Constructor(instructions*) => instructions
+
+        // Create object
+        case NewObject(objectName, className) =>
+          // If object name already exists, pop error and exit the program.
+          if(bindingScopeClassInstances.contains(objectName)){
+            logger.error(s"Object name $objectName already exist of class $className")
+            System.exit(1)
+          }
+
+          // Check if class name exists
+          if(!bindingScopeClass.contains(className)){
+            logger.error(s"Class name $className does not exist.")
+            System.exit(1)
+          }
+
+          // Create a binding map for the object to store class name, fields and methods
+          val thisObjectMap = scala.collection.mutable.Map[BasicType,BasicType]()
+          thisObjectMap += ("className" -> className)
+
+          // Extracting getting the class object from class binding Map
+          val classObject = bindingScopeClass(className)
+
+          // Extracting fields of the class
+          val fields = classObject.asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("fields")
+
+          // Extracting methods of the class
+          val methods = classObject.asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("methods")
+
+          // Create a copy of the fields and methods in the object
+          thisObjectMap += ("fields" -> fields)
+          thisObjectMap += ("methods" -> methods)
+
+          // Binding object name to newly created Map
+          bindingScopeClassInstances += (objectName -> thisObjectMap)
+
+          // Execute constructor
+          // Get constructor instructions
+          val constructorInstructions = bindingScopeClass(className).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("constructor").asInstanceOf[Expression].evaluate()
+
+          // Get binding scope - Fields map of the object from the object-class Map
+          val bindingScopeFields = bindingScopeClassInstances(objectName).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("fields")
+
+          // Execute instructions of the constructor
+          constructorInstructions.asInstanceOf[scala.collection.immutable.ArraySeq[Expression]].foreach(instruction => {
+            instruction.evaluate(bindingHM = bindingScopeFields.asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]])
+          })
       }
 
   @main def runAion(): Unit =
@@ -357,8 +412,10 @@ object aion:
     import Expression.*
 
     // Class def test
-    ClassDef("class1", Field("field1"), Constructor(Assign(Field("field1"), Val(2))), Method("method1", Union(Val(Set(1, 2, 3)), Val(Set(2, 3, 4))))).evaluate()
+    ClassDef("class1", Field("field1"), Constructor(Assign("field1", Val(2))), Method("method1", Union(Val(Set(1, 2, 3)), Val(Set(2, 3, 4))))).evaluate()
     println(bindingScopeClass)
+    NewObject("object1", "class1").evaluate()
+    println(bindingScopeClassInstances)
 
 
 // WRITE YOUR CODE HERE
