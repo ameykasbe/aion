@@ -365,6 +365,9 @@ object aion:
           // Binding Methods binding scope to fields
           thisClassBindingScope("methods") = thisClassBindingScopeMethods
 
+          // Inheritance
+          thisClassBindingScope("inheritance") = false
+
           // Binding class
           bindingScopeClass += (name -> thisClassBindingScope)
           true
@@ -473,10 +476,6 @@ object aion:
           // Get class protected fields
           val protectedFields = accessMap(cname).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("protected").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.HashSet[Any]]
 
-//          println(privateFields)
-//          println(publicFields)
-//          println(accessMap(cname).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("private").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("methods").asInstanceOf[scala.collection.mutable.HashSet[Any]])
-//          println(accessMap(cname).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("public").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("methods").asInstanceOf[scala.collection.mutable.HashSet[Any]])
 
           if (privateFields.contains(fieldName)){
             logger.error(s"Field name $fieldName can not be accessed.")
@@ -522,11 +521,74 @@ object aion:
           instruction
       }
 
+    // Inheritance
+    def Extends(parentClass: String, bindingScopeClass:scala.collection.mutable.Map[BasicType, BasicType] = bindingScopeClass, accessMap:scala.collection.mutable.Map[BasicType, BasicType] = accessMap) : BasicType =
+      // First create the child class with fields, constructor and methods
+      this.evaluate()
+
+      // Check for multiple inheritance
+      if (bindingScopeClass(this.asInstanceOf[ClassDef].name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("inheritance").asInstanceOf[Boolean]){
+        logger.error(s"Multiple inheritance is not supported.")
+        System.exit(1)
+      }
+      // Set flag for multiple inheritance to True
+      bindingScopeClass(this.asInstanceOf[ClassDef].name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("inheritance") = true
+
+      // Get all Public fields of Parent class and add them to Child class
+      // Access Map helps extract public fields. These names are searched in bindingScopeClass and added to child class
+      accessMap(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("public").
+        asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("fields").
+        asInstanceOf[scala.collection.mutable.Set[BasicType]].foreach {
+        field => {
+          bindingScopeClass(this.asInstanceOf[ClassDef].name).
+            asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("fields").
+            asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]] += (field -> null)
+        }
+      }
+      // Get all Protected fields of Parent class and add them to Child class
+      // Access Map helps extract protected fields. These names are searched in bindingScopeClass and added to child class
+      accessMap(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("protected").
+        asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("fields").
+        asInstanceOf[scala.collection.mutable.Set[BasicType]].foreach {
+        field => {
+          bindingScopeClass(this.asInstanceOf[ClassDef].name).
+            asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("fields").
+            asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]] += (field -> null)
+        }
+      }
+
+      // Get all Public methods of Parent class and add them to Child class
+      // Access Map helps extract protected methods. These names are searched in bindingScopeClass and added to child class
+      accessMap(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("public").
+        asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").
+        asInstanceOf[scala.collection.mutable.Set[BasicType]].foreach {
+        method => {
+          val methodDefinition = bindingScopeClass(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]](method)
+          bindingScopeClass(this.asInstanceOf[ClassDef].name).
+            asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").
+            asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]] += (method -> methodDefinition)
+        }
+      }
+
+      // Get all Protected methods of Parent class and add them to Child class
+      // Access Map helps extract protected methods. These names are searched in bindingScopeClass and added to child class
+      accessMap(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("protected").
+        asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").
+        asInstanceOf[scala.collection.mutable.Set[BasicType]].foreach {
+        method => {
+          val methodDefinition = bindingScopeClass(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]](method)
+          bindingScopeClass(this.asInstanceOf[ClassDef].name).
+            asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").
+            asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]] += (method -> methodDefinition)
+        }
+      }
+
+
+    // To extract method name from Method Expression case
     def methodEval() =
       this match{
         case Method(name, instructions*) => name
       }
-
 
   @main def runAion(): Unit =
     // Main function
@@ -534,14 +596,18 @@ object aion:
     import Expression.*
 
     // Class def test, Public, private, protected
-    ClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(2))), Private(Method("method1", Union(Val(Set(1, 2, 3)), Val(Set(2, 3, 4)))))).evaluate()
+//    ClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(2))), Private(Method("method1", Union(Val(Set(1, 2, 3)), Val(Set(2, 3, 4)))))).evaluate()
+//    println(bindingScopeClass)
+//    println(accessMap)
+//
+//    // New object test and GetField test
+//    NewObject("object1", "class1").evaluate()
+//    println(GetField("object1", "field1").evaluate())
+//
+
+    ClassDef("ParentClass", Public(Field("parentField")), Constructor(Assign("parentField", Val(2))), Public(Method("parentMethod", Difference(Val(Set(1, 2, 3)), Val(Set(2, 3, 4)))))).evaluate()
+
+    ClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(2))), Public(Method("method1", Union(Val(Set(1, 2, 3)), Val(Set(2, 3, 4)))))) Extends "ParentClass"
     println(bindingScopeClass)
-    println(accessMap)
-
-    // New object test and GetField test
-    NewObject("object1", "class1").evaluate()
-    println(GetField("object1", "field1").evaluate())
-
-
     // WRITE YOUR CODE HERE
     // TEST SUITE IS PRESENT IN aionTestSuite.scala
