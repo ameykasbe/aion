@@ -330,6 +330,66 @@ The intention of the project is to create a Domain Specific Language (DSL) for u
             <td>
             </td>
         </tr>
+        <tr>
+            <td><b>Abstract Class Definition</b><br><i>Returns: null </i></td>
+            <td>
+                <b>AbstractClassDef("className", Access(Field*), Constructor(), Access(Methods*), Access(AbstractMethods*) ).evaluate()</b><br>
+                <i>
+                    Examples - <br>
+                    Kindly check Semantics for example
+                </i>
+            </td>
+            <td>
+            </td>
+        </tr>
+        <tr>
+            <td><b>Abstract Method</b><br><i>Returns: null </i></td>
+            <td>
+                <b>AbstractMethod("methodName", parameters*)</b><br>
+                <i>
+                    Examples - <br>
+                    Kindly check Semantics for example
+                </i>
+            </td>
+            <td>
+            </td>
+        </tr>
+        <tr>
+            <td><b>Inheriting Abstract Class</b><br><i>Returns: null </i></td>
+            <td>
+                <b>ClassDef(child_class_definition) Extends "AbstractClassName"</b><br>
+                <i>
+                    Examples - <br>
+                    Kindly check Semantics for example
+                </i>
+            </td>
+            <td>
+            </td>
+        </tr>
+        <tr>
+            <td><b>Interface</b><br><i>Returns: null </i></td>
+            <td>
+                <b>Interface("interfaceName", Access(Field*), Access(AbstractMethods*) ).evaluate()</b><br>
+                <i>
+                    Examples - <br>
+                    Kindly check Semantics for example
+                </i>
+            </td>
+            <td>
+            </td>
+        </tr>
+        <tr>
+            <td><b>Implementing Interface</b><br><i>Returns: null </i></td>
+            <td>
+                <b>ClassDef(class_definition) Implements "InterfaceName"</b><br>
+                <i>
+                    Examples - <br>
+                    Kindly check Semantics for example
+                </i>
+            </td>
+            <td>
+            </td>
+        </tr>
     </tbody>
 </table>
 
@@ -649,6 +709,112 @@ There can not be an expression that evaluates to integerVariable's name integerV
   ClassDef("parentClass", Public(Field("parentField")), Constructor(Assign("parentField", Val(1)))).evaluate()
   ClassDef("childClass", Public(Field("childField")), Constructor(Assign("childField", Val(2)))) Extends "parentClass"
   ```
+  
+### Abstract class
+* Syntax
+```
+AbstractClassDef("className", Access(Field*), Constructor(), Access(Methods*), Access(AbstractMethods*) ).evaluate()
+```
+* An abstract class that cannot be instantiated, but they can be inherited.
+* At least one method of an abstract class should be an abstract method.
+* An abstract method is a method that is declared without an implementation.
+* All abstract methods should be overridden.
+
+* Example - 
+```
+AbstractClassDef("parentClass3", Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Public(Method("method1", List("p1", "p2"), Union(Var("p1"), Var("p2")))), Protected(AbstractMethod("methodParent", List("p1", "p2")))).evaluate()
+```
+* Error scenarios -
+  * If there is no abstract method, then abstract class can not be created. 
+  ```
+  AbstractClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(1))), Public(Method("method1", List("p1", "p2"), Union(Var("p1"), Var("p2"))))).evaluate()
+  ```
+  * Instance of an abstract class can not be created.
+  ```
+  AbstractClassDef("parent8",  Public(Field("parentField")), Protected(AbstractMethod("methodParent", List("p1", "p2")))).evaluate()
+  NewObject("childObject8", "parent8").evaluate()
+  ```
+  * If any abstract method is not overridden, then error occurs.
+  ```
+  AbstractClassDef("parent",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(AbstractMethod("methodParent", List("p1", "p2"))), Public(AbstractMethod("methodParent2", List("p8", "p9")))).evaluate()
+  ClassDef("child",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(Method("methodParent", List("p1", "p2"), Difference(Var("p3"), Var("p4"))))) Extends "parent"
+  ```
+
+
+#### Inheriting Abstract Class
+* Abstract classes are inherited using "Extends" keyword
+* Syntax
+```
+ClassDef(child_class_definition) Extends "ParentClass"
+```
+* Example - 
+```
+AbstractClassDef("parentClass3", Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Public(Method("method1", List("p1", "p2"), Union(Var("p1"), Var("p2")))), Protected(AbstractMethod("methodParent", List("p1", "p2")))).evaluate()
+ClassDef("childClass3", Constructor(Assign("childField2", Val(2))), Public(Method("methodParent", List("p1", "p2"), Difference(Var("p1"), Var("p2"))))) Extends "parentClass3"
+```
+  
+### Interface
+* An interface is a group of related methods with empty bodies. [Source](https://docs.oracle.com/javase/tutorial/java/concepts/interface.html)
+* Interface can also not be instantiated, but they can be implemented.
+* Interface should contain at least one abstract method in AION.
+* An abstract method is a method that is declared without an implementation.
+* All abstract methods should be overridden by implementing class.
+* Syntax
+```
+Interface("interfaceName", Access(Field*), Access(AbstractMethods*) ).evaluate()
+```
+* Example
+```
+Interface("parentClass6", Public(Field("parentField")), Protected(AbstractMethod("methodParent", List("p1", "p2")))).evaluate()
+```
+#### Implementing Interface
+* Any interface is implemented using "Implements" keyword in AION.
+* Syntax
+```
+ClassDef(class_definition) Implements "InterfaceName"
+```
+* Example
+```
+Interface("parentClass6", Public(Field("parentField")), Protected(AbstractMethod("methodParent", List("p1", "p2")))).evaluate()
+ClassDef("childClass6", Constructor(Assign("childField2", Val(2))), Public(Method("methodParent", List("p1", "p2"), Difference(Var("p1"), Var("p2"))))) Implements "parentClass6"
+```
+* Error scenarios -
+  * If there is a constructor or a concreate method, then interface can not be created.
+  ```
+  Interface("parent",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(AbstractMethod("methodParent", List("p1", "p2"))), Protected(Method("methodParent2", List("p8", "p9")))).evaluate()
+  ```
+  * Instance of an interface can not be created.
+  ```
+  Interface("parent9",  Public(Field("parentField")), Protected(AbstractMethod("methodParent", List("p1", "p2")))).evaluate()
+  val result = NewObject("childObject9", "parent9").evaluate()
+  ```
+  * If any abstract method is not overridden, then error occurs.
+  ```
+  Interface("parent",  Public(Field("parentField")), Protected(AbstractMethod("methodParent", List("p1", "p2"))), Public(AbstractMethod("methodParent2", List("p8", "p9")))).evaluate()
+  ClassDef("child",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(Method("methodParent", List("p1", "p2"), Difference(Var("p3"), Var("p4"))))) Implements "parent"
+  ```
+
+## FAQs
+* Difference between abstract classes and Interface
+  * Key difference between interface and an abstract class is that: Abstract classes can have attributes, method declarations  and defined methods, whereas interfaces can only have attributes and methods declarations. [Source](https://stackoverflow.com/questions/1913098/what-is-the-difference-between-an-interface-and-abstract-class#:~:text=The%20key%20technical%20differences%20between,have%20constants%20and%20methods%20stubs.)
+
+* Can a class/interface inherit from itself?
+  * No, a class/interface can not inherit from itself. It makes no sense to inherit attributes from itself, might form an endless loop of inheritance.
+  
+* Can an interface inherit from an abstract class with all pure methods?
+  * An interface can not inherit from an abstract class because interface can only inherit from other interfaces. By definition, interface can only contain attributes and method declarations while classes (including abstract classes) can have attributes, hence inheritance is not possible in all cases even if all the methods are pure. 
+* Can an interface implement another interface?
+  * No, an interface can not implement another interface. By definition, interface can only have method declarations and to implement any interface, it's methods are defined, which by definition can not be done in another interface.
+* Can a class implement two or more different interfaces that declare methods with exactly the same signatures?
+  * Yes, a class can implement two or more different interfaces that declare methods with exactly the same signatures. If the method signatures are same, then both the methods would be overridden by the class. The "Implements" design in AION works in this case as well. The class created and interfaces' declarations check would be done in similar manner.   
+* Can an abstract class implement interfaces?
+  * Yes, an abstract class can implement interfaces. AION's implements design works in this case as well. Abstract class is a type of class in AION and by definition, abstract class can have method definitions. Defining all abstract methods of interfaces would result in implementing interface in an abstract class. You can have any abstract methods in the abstract class. 
+* Can a class implement two or more interfaces that have methods whose signatures differ only in return types?
+  * No, a class can not implement two or more interfaces that have methods whose signatures differ only in return types.
+* Can an abstract class inherit from a concrete class?
+  * Yes, an abstract class can inherit from a concrete class. AION's "Extends" design works in this case. 
+* Can an abstract class/interface be instantiated as anonymous concrete classes?
+  * By definition abstract class can not be instantiated. But anonymous class can implement abstract class or interface. 
 
 ## Files
 ### Source Code

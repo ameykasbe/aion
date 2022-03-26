@@ -276,7 +276,7 @@ class aionTestSuite extends AnyFunSpec{
   // Test case 25
   describe("Interface 3") {
     it("Interface's instance should not be created") {
-      AbstractClassDef("parent9",  Public(Field("parentField")), Protected(AbstractMethod("methodParent", List("p1", "p2")))).evaluate()
+      Interface("parent9",  Public(Field("parentField")), Protected(AbstractMethod("methodParent", List("p1", "p2")))).evaluate()
       val result = NewObject("childObject9", "parent9").evaluate()
       assert(result == "Can not create an instance of an abstract class or an interface.")
     }
