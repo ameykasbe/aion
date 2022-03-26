@@ -384,6 +384,9 @@ object aion:
           // IsAbstract
           thisClassBindingScope("isAbstract") = false
 
+          // IsInterface
+          thisClassBindingScope("isInterface") = false
+
           // Binding class
           bindingScopeClass += (name -> thisClassBindingScope)
           true
@@ -476,10 +479,11 @@ object aion:
 
         // Create object
         case NewObject(objectName, className) =>
-          // If class is an abstract class, pop error and exit.
-            if(bindingScopeClass(className).asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("isAbstract") == true){
-              logger.error("Can not create an instance of abstract class.")
-              System.exit(1)
+          // If class is an abstract class or an interface, pop error and exit.
+            val isAbstractBool = bindingScopeClass(className).asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("isAbstract")
+            val isInterfaceBool = bindingScopeClass(className).asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("isInterface")
+            if((isAbstractBool == true) || (isInterfaceBool == true)){
+              return "Can not create an instance of an abstract class or an interface."
             }
 
           // If object name already exists, pop error and exit the program.
@@ -766,6 +770,9 @@ object aion:
           // IsAbstract
           thisClassBindingScope("isAbstract") = true
 
+          // IsInterface
+          thisClassBindingScope("isInterface") = false
+
           // Binding class
           bindingScopeClass += (name -> thisClassBindingScope)
           true
@@ -887,6 +894,9 @@ object aion:
           // Inheritance
           thisClassBindingScope("inheritance") = false
 
+          // IsAbstract
+          thisClassBindingScope("isAbstract") = false
+
           // IsInterface
           thisClassBindingScope("isInterface") = true
 
@@ -976,6 +986,87 @@ object aion:
         }
       }
 
+    // Implements
+    def Implements(parentClass: String, bindingScopeClass:scala.collection.mutable.Map[BasicType, BasicType] = bindingScopeClass, accessMap:scala.collection.mutable.Map[BasicType, BasicType] = accessMap) : BasicType =
+      // First create the child class with fields, constructor and methods
+      this.evaluate()
+
+      // Check for multiple inheritance
+      if (bindingScopeClass(this.asInstanceOf[ClassDef].name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("inheritance").asInstanceOf[Boolean]){
+        logger.error(s"Multiple inheritance is not supported.")
+        System.exit(1)
+      }
+      // Set flag for multiple inheritance to True
+      bindingScopeClass(this.asInstanceOf[ClassDef].name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("inheritance") = true
+
+      // Get all Public fields of interface and add them to Child class
+      // Access Map helps extract public fields. These names are searched in bindingScopeClass and added to child class
+      accessMap(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("public").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("fields").asInstanceOf[scala.collection.mutable.Set[BasicType]].foreach {
+        field => {
+          bindingScopeClass(this.asInstanceOf[ClassDef].name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("fields").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]] += (field -> null)
+        }
+      }
+      // Get all Protected fields of interface and add them to Child class
+      // Access Map helps extract protected fields. These names are searched in bindingScopeClass and added to child class
+      accessMap(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("protected").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("fields").asInstanceOf[scala.collection.mutable.Set[BasicType]].foreach {
+        field => {
+          bindingScopeClass(this.asInstanceOf[ClassDef].name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("fields").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]] += (field -> null)
+        }
+      }
+
+      // Get all Public methods of interface and add them to Child class
+      // Access Map helps extract protected methods. These names are searched in bindingScopeClass and added to child class
+      accessMap(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("public").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Set[BasicType]].foreach {
+        method => {
+          // If method does not already exist, then only add the method
+          if (!bindingScopeClass(this.asInstanceOf[ClassDef].name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]].contains(method)){
+
+            // Get method definition
+            val methodDefinition = bindingScopeClass(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]](method)
+
+            // Add method with it's definition in child class
+            bindingScopeClass(this.asInstanceOf[ClassDef].name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]] += (method -> methodDefinition)
+          }
+
+        }
+      }
+
+      // Get all Protected methods of interface and add them to Child class
+      // Access Map helps extract protected methods. These names are searched in bindingScopeClass and added to child class
+      accessMap(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("protected").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Set[BasicType]].foreach {
+        method => {
+          // If method does not already exist, then only add the method
+          if (!bindingScopeClass(this.asInstanceOf[ClassDef].name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]].contains(method)){
+
+            // Get method definition
+            val methodDefinition = bindingScopeClass(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]](method)
+
+            // Add method with it's definition in child class
+            bindingScopeClass(this.asInstanceOf[ClassDef].name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]] += (method -> methodDefinition)
+          }
+        }
+      }
+
+      val methodsHashmap = bindingScopeClass(this.asInstanceOf[ClassDef].name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]
+
+      accessMap(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("protected").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("abstractMethods").asInstanceOf[scala.collection.mutable.Set[BasicType]].foreach {
+        method => {
+          if(methodsHashmap.contains(method) == false){
+            logger.error(s"Method $method is an abstract method that is not overridden by child class.")
+            System.exit(1)
+          }
+        }
+      }
+
+      accessMap(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("public").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("abstractMethods").asInstanceOf[scala.collection.mutable.Set[BasicType]].foreach {
+        method => {
+          if(methodsHashmap.contains(method) == false){
+            logger.error(s"Method $method is an abstract method that is not overridden by child class.")
+            System.exit(1)
+          }
+        }
+      }
+
     // To extract method name from Method Expression case
     def methodEval() =
       this match{
@@ -1018,11 +1109,12 @@ object aion:
     // Error - Constructor can not be there in Interface
 //    Interface("parent",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(AbstractMethod("methodParent", List("p1", "p2"))), Protected(Method("methodParent2", List("p8", "p9")))).evaluate()
 
-    // Error - Concrete method can not be there in Interface
-    Interface("parent",  Public(Field("parentField")), Protected(AbstractMethod("methodParent", List("p1", "p2")))).evaluate()
-//    ClassDef("child",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(Method("methodParent", List("p1", "p2"), Difference(Var("p3"), Var("p4"))))) Extends "parent"
+    // Error - can not create an instance of an interface
+//    Interface("parent",  Public(Field("parentField")), Protected(AbstractMethod("methodParent", List("p1", "p2")))).evaluate()
+//    ClassDef("child",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(Method("methodParent", List("p1", "p2"), Difference(Var("p3"), Var("p4"))))) Implements "parent"
 //    NewObject("childObject", "child").evaluate()
-//    println(bindingScopeClass)
+//    val result = InvokeMethod("childObject", "methodParent", Assign("p3", Val(Set(1, 2, 3))), Assign("p4", Val(Set(1, 2, 4)))).evaluate()
+//    println(result)
 
 
     // WRITE YOUR CODE HERE

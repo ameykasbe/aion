@@ -222,5 +222,64 @@ class aionTestSuite extends AnyFunSpec{
     }
   }
 
+  // Test case 20
+  describe("Abstract Class1") {
+    it("child should be able to inherit abstract class (parent) attributes as null") {
+      AbstractClassDef("parentClass3", Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Public(Method("method1", List("p1", "p2"), Union(Var("p1"), Var("p2")))), Protected(AbstractMethod("methodParent", List("p1", "p2")))).evaluate()
+      ClassDef("childClass3", Constructor(Assign("childField2", Val(2))), Public(Method("methodParent", List("p1", "p2"), Difference(Var("p1"), Var("p2"))))) Extends "parentClass3"
+      NewObject("childObject3", "childClass3").evaluate()
+      assert(GetField("childObject3", "parentField").evaluate() == null)
+    }
+  }
+
+  // Test case 21
+  describe("Abstract Class2") {
+    it("child should be able to override abstract class (parent) abstract method") {
+      AbstractClassDef("parent5",  Public(Field("parentField")), Protected(AbstractMethod("methodParent", List("p1", "p2")))).evaluate()
+      ClassDef("child5",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(Method("methodParent", List("p1", "p2"), Difference(Var("p3"), Var("p4"))))) Extends "parent5"
+      NewObject("childObject5", "child5").evaluate()
+      val result = InvokeMethod("childObject5", "methodParent", Assign("p3", Val(Set(1, 2, 3))), Assign("p4", Val(Set(1, 2, 4)))).evaluate()
+      assert(result == Set(3))
+    }
+  }
+
+  // Test case 22
+  describe("Interface1") {
+    it("child should be able to inherit interface attributes as null") {
+      Interface("parentClass6", Public(Field("parentField")), Protected(AbstractMethod("methodParent", List("p1", "p2")))).evaluate()
+      ClassDef("childClass6", Constructor(Assign("childField2", Val(2))), Public(Method("methodParent", List("p1", "p2"), Difference(Var("p1"), Var("p2"))))) Implements "parentClass6"
+      NewObject("childObject6", "childClass6").evaluate()
+      assert(GetField("childObject6", "parentField").evaluate() == null)
+    }
+  }
+
+  // Test case 23
+  describe("Interface2") {
+    it("child should be able to override interface's abstract method") {
+      Interface("parent7",  Public(Field("parentField")), Protected(AbstractMethod("methodParent", List("p1", "p2")))).evaluate()
+      ClassDef("child7",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(Method("methodParent", List("p1", "p2"), Difference(Var("p3"), Var("p4"))))) Implements "parent7"
+      NewObject("childObject7", "child7").evaluate()
+      val result = InvokeMethod("childObject7", "methodParent", Assign("p3", Val(Set(1, 2, 3))), Assign("p4", Val(Set(1, 2, 4)))).evaluate()
+      assert(result == Set(3))
+    }
+  }
+
+  // Test case 24
+  describe("Abstract class 3") {
+    it("Abstract class's instance should not be created") {
+      AbstractClassDef("parent8",  Public(Field("parentField")), Protected(AbstractMethod("methodParent", List("p1", "p2")))).evaluate()
+      val result = NewObject("childObject8", "parent8").evaluate()
+      assert(result == "Can not create an instance of an abstract class or an interface.")
+    }
+  }
+
+  // Test case 25
+  describe("Interface 3") {
+    it("Interface's instance should not be created") {
+      AbstractClassDef("parent9",  Public(Field("parentField")), Protected(AbstractMethod("methodParent", List("p1", "p2")))).evaluate()
+      val result = NewObject("childObject9", "parent9").evaluate()
+      assert(result == "Can not create an instance of an abstract class or an interface.")
+    }
+  }
 
 }
