@@ -54,12 +54,15 @@ object aion:
     case Private(instruction: Expression) // Update Access Map with Private members
     case Protected(instruction: Expression) // Update Access Map with Protected members
 
+    // Homework 3
+    case AbstractClassDef(name: String, members: Expression*) // Define an abstract class
+    case AbstractMethod(name: String, params: List[BasicType]) // Define an abstract Method
+
     def evaluate(scopeName: String = "global", bindingHM: scala.collection.mutable.Map[BasicType, BasicType] = bindingScope, classNameEval: String = "default"): BasicType =
     // Evaluates an expression. Accepts an argument scopeName, bindingHM = bindingHM representing scope with default value as global.
       this match{
 
         // Val(value): `Val` is the constant datatype for the DSL. `value` can be of any datatype of language Scala. Evaluating the expression `Val(value)` returns value.
-        case Val(value) => value
         // Var(value): `Var` is the variable datatype for the DSL.
         // `name` is string of language Scala.
         // Evaluating the expression Var(name) returns the mapped value of Var(name) from HashMap.
@@ -69,6 +72,7 @@ object aion:
 
         // If scope is not global, before searching for bindings, the scope name is concatenated with the name and searched in the binding.
         // If not found in a particular scope, the binding is searched in global. If not found there, error is displayed and program is executed.
+        case Val(value) => value
 
         case Var(name) =>
           if (scopeName == "global") {
@@ -278,7 +282,7 @@ object aion:
             System.exit(1)
           }
           // Binding scope of the class - contains all the fields, constructor and methods.
-          val thisClassBindingScope = scala.collection.mutable.Map[BasicType,BasicType]("fields" -> null, "constructor" -> null, "method" -> null )
+          val thisClassBindingScope = scala.collection.mutable.Map[BasicType,BasicType]("fields" -> null, "constructor" -> null, "methods" -> null )
 
           // Binding scope for fields of this class
           val thisClassBindingScopeFields = scala.collection.mutable.Map[BasicType,BasicType]()
@@ -370,6 +374,9 @@ object aion:
           // Inheritance
           thisClassBindingScope("inheritance") = false
 
+          // IsAbstract
+          thisClassBindingScope("isAbstract") = false
+
           // Binding class
           bindingScopeClass += (name -> thisClassBindingScope)
           true
@@ -411,7 +418,6 @@ object aion:
           tempMethodMap += ("params" -> tempVarMap)
           methodMap += (name -> tempMethodMap)
           methodMap
-
 //          // Create a Map with single element - name (method's name) => instructionList
 //          val instructionListMapSingleElement = scala.collection.mutable.Map[BasicType,BasicType]()
 //          instructionListMapSingleElement += (name -> instructionList)
@@ -424,7 +430,6 @@ object aion:
             logger.error(s"Object name $name does not exist.")
             System.exit(1)
           }
-
           // Create a separate binding for the method for each parameter
           params.foreach(item => {
             val item1 = item.asInstanceOf[Expression]
@@ -552,9 +557,13 @@ object aion:
             val instructionName = instruction.evaluate(bindingHM = bindingHM)
             accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("public").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.Set[Any]] += instructionName
           }
-          else{
+          else if (instruction.isInstanceOf[Method]){
             val instructionName = instruction.methodEval()
             accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("public").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("methods").asInstanceOf[scala.collection.mutable.Set[Any]] += instructionName
+          }
+          else{
+            val instructionName = instruction.methodEval()
+            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("public").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("abstractMethods").asInstanceOf[scala.collection.mutable.Set[Any]] += instructionName
           }
           // Return the actual instruction
           instruction
@@ -565,9 +574,13 @@ object aion:
             val instructionName = instruction.evaluate(bindingHM = bindingHM)
             accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("private").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.Set[Any]] += instructionName
           }
-          else{
+          else if (instruction.isInstanceOf[Method]){
             val instructionName = instruction.methodEval()
             accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("private").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("methods").asInstanceOf[scala.collection.mutable.Set[Any]] += instructionName
+          }
+          else{
+            val instructionName = instruction.methodEval()
+            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("private").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("abstractMethods").asInstanceOf[scala.collection.mutable.Set[Any]] += instructionName
           }
           // Return the actual instruction
           instruction
@@ -578,12 +591,178 @@ object aion:
             val instructionName = instruction.evaluate(bindingHM = bindingHM)
             accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("protected").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("fields").asInstanceOf[scala.collection.mutable.Set[Any]] += instructionName
           }
-          else{
+          else if (instruction.isInstanceOf[Method]){
             val instructionName = instruction.methodEval()
             accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("protected").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("methods").asInstanceOf[scala.collection.mutable.Set[Any]] += instructionName
           }
+          else{
+            val instructionName = instruction.methodEval()
+            accessMap(classNameEval).asInstanceOf[scala.collection.mutable.Map[Any, Any]]("protected").asInstanceOf[scala.collection.mutable.Map[Any, Any]]("abstractMethods").asInstanceOf[scala.collection.mutable.Set[Any]] += instructionName
+          }
+
           // Return the actual instruction
           instruction
+
+        // AbstractMethod case
+        case AbstractMethod(name, params) =>
+          val tempMethodMap: scala.collection.mutable.Map[BasicType, BasicType] = Map("params" -> null, "exps" -> null)
+          val methodMap: scala.collection.mutable.Map[BasicType, BasicType] = Map()
+
+
+          // Create list of instructions
+          // val instructionList = scala.collection.mutable.Set[BasicType]()
+
+          // Add instructions to instruction list of the method
+          // instructions.foreach(instruction => {instructionList += instruction})
+          val tempVarMap = scala.collection.mutable.Map[Any,Any]()
+          params.foreach(i => {
+            tempVarMap += (i -> null)
+          })
+
+          // tempMethodMap("exps") = instructionList
+          tempMethodMap += ("params" -> tempVarMap)
+          methodMap += (name -> tempMethodMap)
+          methodMap
+
+        // Define a class
+        case AbstractClassDef(name, members*) =>
+          if(bindingScopeClass.contains(name)){
+            // If a class with same name already exists, pop error and exit the program.
+            logger.error(s"Class name $name already assigned to a class.")
+            System.exit(1)
+          }
+
+//          if (!ifAbstractMethodPresent(members*)){
+//            logger.error("No abstract method in abstract class.")
+//            System.exit(1)
+//          }
+
+          // Binding scope of the class - contains all the fields, constructor and methods.
+          val thisClassBindingScope = scala.collection.mutable.Map[BasicType,BasicType]("fields" -> null, "constructor" -> null, "methods" -> null, "abstractMethods" -> null)
+
+
+          // Binding scope for fields of this class
+          val thisClassBindingScopeFields = scala.collection.mutable.Map[BasicType,BasicType]()
+
+          // Binding scope for the methods of the class
+          val thisClassBindingScopeMethods = scala.collection.mutable.Map[BasicType,BasicType]()
+
+          // Binding scope for the abstract methods of the class
+          val thisClassBindingScopeAbstractMethods = scala.collection.mutable.Map[BasicType,BasicType]()
+
+          // Update accessMap - class members with access specifiers
+          // Private members
+          val privateMembers: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
+          val privateField: scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          val privateMethod: scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          val privateAbstractMethod: scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          privateMembers += ("fields" -> privateField)
+          privateMembers += ("methods" -> privateMethod)
+          privateMembers += ("abstractMethods" -> privateAbstractMethod)
+
+          // Public members
+          val publicMembers: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
+          val publicField:scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          val publicMethod:scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          val publicAbstractMethod: scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          publicMembers += ("fields" -> publicField)
+          publicMembers += ("methods" -> publicMethod)
+          publicMembers += ("abstractMethods" -> publicAbstractMethod)
+
+          // Protected members
+          val protectedMembers: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
+          val protectedField:scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          val protectedMethod:scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          val protectedAbstractMethod: scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          protectedMembers += ("fields" -> protectedField)
+          protectedMembers += ("methods" -> protectedMethod)
+          protectedMembers += ("abstractMethods" -> protectedAbstractMethod)
+
+          // Update access map
+          val classAccess: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
+          classAccess += ("public" -> publicMembers)
+          classAccess += ("private" -> privateMembers)
+          classAccess += ("protected" -> protectedMembers)
+
+          // Maintain a access map to check if any member is public, private or protected.
+          accessMap += (name -> classAccess)
+
+
+          // Working on each member according to their type - Fields, Methods or Constructor
+          members.foreach(member => {
+
+            // Member should be instance of the Expression type
+            val memberExp = member.asInstanceOf[Expression]
+
+            // If member is a Constructor
+            if (memberExp.isInstanceOf[Expression.Constructor]) {
+              thisClassBindingScope("constructor") = memberExp
+            }
+            else{
+              val memberExp2 = memberExp.evaluate(classNameEval = name).asInstanceOf[Expression] // Populate access specifier set.
+              // If member is a Field
+              if (memberExp2.isInstanceOf[Expression.Field]) {
+                val fieldName = memberExp2.evaluate(bindingHM = bindingHM)
+
+                // If field name already exists, pop error and exit the program.
+                if(thisClassBindingScopeFields.contains(fieldName)){
+                  logger.error(s"Field name $fieldName already exist in the class to a class.")
+                  System.exit(1)
+                }
+                // If field does not exist, create fieldName binding to null.
+                thisClassBindingScopeFields += (fieldName -> null)
+              }
+
+              // If member is a Method
+              else if (memberExp2.isInstanceOf[Expression.Method]) {
+                // Evaluate method to get list of expressions, bind the list of expressions to the method
+                val methodInstructionsMapElement = memberExp2.evaluate(bindingHM = bindingHM).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]
+                thisClassBindingScopeMethods .++= (methodInstructionsMapElement)
+
+              }
+
+              else if (memberExp2.isInstanceOf[Expression.AbstractMethod]) {
+                // Evaluate method to get list of expressions, bind the list of expressions to the method
+                val methodInstructionsMapElement = memberExp2.evaluate(bindingHM = bindingHM).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]
+                thisClassBindingScopeAbstractMethods .++= (methodInstructionsMapElement)
+
+                //// Logical overview
+                // thisClassBindingScopeMethods => { method1 => List[Expression}, method2 => List[Expression], abstractMethod1 => List[]}
+              }
+              else{
+                logger.error(s"A member of the class is not a constructor, field, method or abstract method.")
+                System.exit(1)
+              }
+            }
+
+
+          })
+
+          // Binding Fields binding scope to fields
+          thisClassBindingScope("fields") = thisClassBindingScopeFields
+
+          // Binding Methods binding scope to fields
+          thisClassBindingScope("methods") = thisClassBindingScopeMethods
+
+          // Binding Abstract Methods binding scope to fields
+          thisClassBindingScope("abstractMethods") = thisClassBindingScopeAbstractMethods
+          if(thisClassBindingScopeAbstractMethods.size == 0) {
+            logger.error("No abstract method found for abstract class.")
+            accessMap -= (name)
+            System.exit(1)
+          }
+
+          // Inheritance
+          thisClassBindingScope("inheritance") = false
+
+          // IsAbstract
+          thisClassBindingScope("isAbstract") = true
+
+          // Binding class
+          bindingScopeClass += (name -> thisClassBindingScope)
+          true
+
+
       }
 
     // Inheritance
@@ -635,11 +814,20 @@ object aion:
         }
       }
 
+    def ifAbstractMethodPresent(members: Expression*): Boolean = {
+      members.foreach(member => {
+        if(member.isInstanceOf[AbstractMethod]){
+          return true
+        }
+      })
+      false
+    }
 
     // To extract method name from Method Expression case
     def methodEval() =
       this match{
         case Method(name, params, instructions*) => name
+        case AbstractMethod(name, params) => name
       }
 
   @main def runAion(): Unit =
@@ -647,6 +835,12 @@ object aion:
     // Importing all expressions
     import Expression.*
 
+    // Error - no abstract methods
+//    AbstractClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(1))), Public(Method("method1", List("p1", "p2"), Union(Var("p1"), Var("p2"))))).evaluate()
+
+    AbstractClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(1))), Public(AbstractMethod("method1", List("p1", "p2")))).evaluate()
+    println(bindingScopeClass)
+    println(accessMap)
 
 
     // WRITE YOUR CODE HERE
