@@ -798,20 +798,52 @@ object aion:
       // Access Map helps extract protected methods. These names are searched in bindingScopeClass and added to child class
       accessMap(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("public").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Set[BasicType]].foreach {
         method => {
-          // Get method definition
-          val methodDefinition = bindingScopeClass(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]](method)
-          // Add method with it's definition in child class
-          bindingScopeClass(this.asInstanceOf[ClassDef].name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]] += (method -> methodDefinition)}
+          // If method does not already exist, then only add the method
+          if (!bindingScopeClass(this.asInstanceOf[ClassDef].name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]].contains(method)){
+
+            // Get method definition
+            val methodDefinition = bindingScopeClass(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]](method)
+
+            // Add method with it's definition in child class
+            bindingScopeClass(this.asInstanceOf[ClassDef].name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]] += (method -> methodDefinition)
+          }
+
+        }
       }
 
       // Get all Protected methods of Parent class and add them to Child class
       // Access Map helps extract protected methods. These names are searched in bindingScopeClass and added to child class
       accessMap(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("protected").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Set[BasicType]].foreach {
         method => {
-          // Get method definition
-          val methodDefinition = bindingScopeClass(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]](method)
-          // Add method with it's definition in child class
-          bindingScopeClass(this.asInstanceOf[ClassDef].name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]] += (method -> methodDefinition)
+          // If method does not already exist, then only add the method
+          if (!bindingScopeClass(this.asInstanceOf[ClassDef].name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]].contains(method)){
+
+            // Get method definition
+            val methodDefinition = bindingScopeClass(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]](method)
+
+            // Add method with it's definition in child class
+            bindingScopeClass(this.asInstanceOf[ClassDef].name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]] += (method -> methodDefinition)
+          }
+        }
+      }
+
+      val methodsHashmap = bindingScopeClass(this.asInstanceOf[ClassDef].name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("methods").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]
+
+      accessMap(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("protected").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("abstractMethods").asInstanceOf[scala.collection.mutable.Set[BasicType]].foreach {
+        method => {
+          if(methodsHashmap.contains(method) == false){
+            logger.error(s"Method $method is an abstract method that is not overridden by child class.")
+            System.exit(1)
+          }
+        }
+      }
+
+      accessMap(parentClass).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("public").asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("abstractMethods").asInstanceOf[scala.collection.mutable.Set[BasicType]].foreach {
+        method => {
+          if(methodsHashmap.contains(method) == false){
+            logger.error(s"Method $method is an abstract method that is not overridden by child class.")
+            System.exit(1)
+          }
         }
       }
 
@@ -830,10 +862,24 @@ object aion:
     // Error - no abstract methods
 //    AbstractClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(1))), Public(Method("method1", List("p1", "p2"), Union(Var("p1"), Var("p2"))))).evaluate()
 
-    AbstractClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(1))), Public(AbstractMethod("method1", List("p1", "p2")))).evaluate()
-    println(bindingScopeClass)
-    println(accessMap)
-    NewObject("childObject1", "class1").evaluate()
+//    AbstractClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(1))), Public(AbstractMethod("method1", List("p1", "p2")))).evaluate()
+//    println(bindingScopeClass)
+//    println(accessMap)
+//    NewObject("childObject1", "class1").evaluate()
+
+
+    // Inheriting abstract class
+//    AbstractClassDef("parent",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(AbstractMethod("methodParent", List("p1", "p2"))), Protected(AbstractMethod("methodParent2", List("p8", "p9")))).evaluate()
+//
+//    ClassDef("child",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(Method("methodParent", List("p1", "p2"), Difference(Var("p3"), Var("p4")))), Protected(Method("methodParent2", List("p1", "p2"), Union (Var("p3"), Var("p4"))))) Extends "parent"
+//    NewObject("childObject", "child").evaluate()
+//    println(bindingScopeClassInstances)
+
+    // Error if all abstract methods are not overridden
+    AbstractClassDef("parent",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(AbstractMethod("methodParent", List("p1", "p2"))), Public(AbstractMethod("methodParent2", List("p8", "p9")))).evaluate()
+
+    ClassDef("child",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(Method("methodParent", List("p1", "p2"), Difference(Var("p3"), Var("p4"))))) Extends "parent"
+    NewObject("childObject", "child").evaluate()
 
 
     // WRITE YOUR CODE HERE
