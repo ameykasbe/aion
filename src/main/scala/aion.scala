@@ -469,6 +469,12 @@ object aion:
 
         // Create object
         case NewObject(objectName, className) =>
+          // If class is an abstract class, pop error and exit.
+            if(bindingScopeClass(className).asInstanceOf[scala.collection.mutable.Map[BasicType,BasicType]]("isAbstract") == true){
+              logger.error("Can not create an instance of abstract class.")
+              System.exit(1)
+            }
+
           // If object name already exists, pop error and exit the program.
           if(bindingScopeClassInstances.contains(objectName)){
             logger.error(s"Object name $objectName already exist of class $className")
@@ -632,10 +638,7 @@ object aion:
             System.exit(1)
           }
 
-//          if (!ifAbstractMethodPresent(members*)){
-//            logger.error("No abstract method in abstract class.")
-//            System.exit(1)
-//          }
+
 
           // Binding scope of the class - contains all the fields, constructor and methods.
           val thisClassBindingScope = scala.collection.mutable.Map[BasicType,BasicType]("fields" -> null, "constructor" -> null, "methods" -> null, "abstractMethods" -> null)
@@ -761,8 +764,6 @@ object aion:
           // Binding class
           bindingScopeClass += (name -> thisClassBindingScope)
           true
-
-
       }
 
     // Inheritance
@@ -814,15 +815,6 @@ object aion:
         }
       }
 
-    def ifAbstractMethodPresent(members: Expression*): Boolean = {
-      members.foreach(member => {
-        if(member.isInstanceOf[AbstractMethod]){
-          return true
-        }
-      })
-      false
-    }
-
     // To extract method name from Method Expression case
     def methodEval() =
       this match{
@@ -841,6 +833,7 @@ object aion:
     AbstractClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(1))), Public(AbstractMethod("method1", List("p1", "p2")))).evaluate()
     println(bindingScopeClass)
     println(accessMap)
+    NewObject("childObject1", "class1").evaluate()
 
 
     // WRITE YOUR CODE HERE
