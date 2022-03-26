@@ -57,6 +57,7 @@ object aion:
     // Homework 3
     case AbstractClassDef(name: String, members: Expression*) // Define an abstract class
     case AbstractMethod(name: String, params: List[BasicType]) // Define an abstract Method
+    case Interface(name: String, members: Expression*) // Define an interface
 
     def evaluate(scopeName: String = "global", bindingHM: scala.collection.mutable.Map[BasicType, BasicType] = bindingScope, classNameEval: String = "default"): BasicType =
     // Evaluates an expression. Accepts an argument scopeName, bindingHM = bindingHM representing scope with default value as global.
@@ -295,22 +296,28 @@ object aion:
           val privateMembers: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
           val privateField: scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
           val privateMethod: scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          val privateAbstractMethod: scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
           privateMembers += ("fields" -> privateField)
           privateMembers += ("methods" -> privateMethod)
+          privateMembers += ("abstractMethods" -> privateAbstractMethod)
 
           // Public members
           val publicMembers: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
           val publicField:scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
           val publicMethod:scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          val publicAbstractMethod: scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
           publicMembers += ("fields" -> publicField)
           publicMembers += ("methods" -> publicMethod)
+          publicMembers += ("abstractMethods" -> publicAbstractMethod)
 
           // Protected members
           val protectedMembers: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
           val protectedField:scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
           val protectedMethod:scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          val protectedAbstractMethod: scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
           protectedMembers += ("fields" -> protectedField)
           protectedMembers += ("methods" -> protectedMethod)
+          protectedMembers += ("abstractMethods" -> protectedAbstractMethod)
 
           // Update access map
           val classAccess: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
@@ -630,15 +637,13 @@ object aion:
           methodMap += (name -> tempMethodMap)
           methodMap
 
-        // Define a class
+        // Define an abstract class
         case AbstractClassDef(name, members*) =>
           if(bindingScopeClass.contains(name)){
             // If a class with same name already exists, pop error and exit the program.
             logger.error(s"Class name $name already assigned to a class.")
             System.exit(1)
           }
-
-
 
           // Binding scope of the class - contains all the fields, constructor and methods.
           val thisClassBindingScope = scala.collection.mutable.Map[BasicType,BasicType]("fields" -> null, "constructor" -> null, "methods" -> null, "abstractMethods" -> null)
@@ -764,9 +769,133 @@ object aion:
           // Binding class
           bindingScopeClass += (name -> thisClassBindingScope)
           true
+
+        // Define an interface
+        case Interface(name, members*) =>
+          if(bindingScopeClass.contains(name)){
+            // If a class with same name already exists, pop error and exit the program.
+            logger.error(s"Class name $name already assigned to a class.")
+            System.exit(1)
+          }
+
+          // Binding scope of the class - contains all the fields and abstract methods.
+          val thisClassBindingScope = scala.collection.mutable.Map[BasicType,BasicType]("fields" -> null, "abstractMethods" -> null)
+
+
+          // Binding scope for fields of this class
+          val thisClassBindingScopeFields = scala.collection.mutable.Map[BasicType,BasicType]()
+
+          // Binding scope for the abstract methods of the class
+          val thisClassBindingScopeAbstractMethods = scala.collection.mutable.Map[BasicType,BasicType]()
+
+          // Update accessMap - class members with access specifiers
+          // Private members
+          val privateMembers: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
+          val privateField: scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          val privateAbstractMethod: scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          privateMembers += ("fields" -> privateField)
+          privateMembers += ("methods" -> scala.collection.mutable.Set())
+          privateMembers += ("abstractMethods" -> privateAbstractMethod)
+
+          // Public members
+          val publicMembers: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
+          val publicField:scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          val publicAbstractMethod: scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          publicMembers += ("fields" -> publicField)
+          publicMembers += ("methods" -> scala.collection.mutable.Set())
+          publicMembers += ("abstractMethods" -> publicAbstractMethod)
+
+          // Protected members
+          val protectedMembers: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
+          val protectedField:scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          val protectedAbstractMethod: scala.collection.mutable.Set[BasicType] = scala.collection.mutable.Set()
+          protectedMembers += ("fields" -> protectedField)
+          protectedMembers += ("methods" -> scala.collection.mutable.Set())
+          protectedMembers += ("abstractMethods" -> protectedAbstractMethod)
+
+          // Update access map
+          val classAccess: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
+          classAccess += ("public" -> publicMembers)
+          classAccess += ("private" -> privateMembers)
+          classAccess += ("protected" -> protectedMembers)
+
+          // Maintain a access map to check if any member is public, private or protected.
+          accessMap += (name -> classAccess)
+
+
+          // Working on each member according to their type - Fields, Methods or Constructor
+          members.foreach(member => {
+
+            // Member should be instance of the Expression type
+            val memberExp = member.asInstanceOf[Expression]
+
+            // If member is a Constructor
+            if (memberExp.isInstanceOf[Expression.Constructor]) {
+              logger.error("Member can not be a constructor")
+              System.exit(1)
+            }
+            else{
+              val memberExp2 = memberExp.evaluate(classNameEval = name).asInstanceOf[Expression] // Populate access specifier set.
+              // If member is a Field
+              if (memberExp2.isInstanceOf[Expression.Field]) {
+                val fieldName = memberExp2.evaluate(bindingHM = bindingHM)
+
+                // If field name already exists, pop error and exit the program.
+                if(thisClassBindingScopeFields.contains(fieldName)){
+                  logger.error(s"Field name $fieldName already exist in the class to a class.")
+                  System.exit(1)
+                }
+                // If field does not exist, create fieldName binding to null.
+                thisClassBindingScopeFields += (fieldName -> null)
+              }
+
+              // If member is a Method
+              else if (memberExp2.isInstanceOf[Expression.Method]) {
+                logger.error("Member can not be a method. Should be an abstract method only.")
+                System.exit(1)
+              }
+
+              else if (memberExp2.isInstanceOf[Expression.AbstractMethod]) {
+                // Evaluate method to get list of expressions, bind the list of expressions to the method
+                val methodInstructionsMapElement = memberExp2.evaluate(bindingHM = bindingHM).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]
+                thisClassBindingScopeAbstractMethods .++= (methodInstructionsMapElement)
+
+                //// Logical overview
+                // thisClassBindingScopeMethods => {abstractMethod1 => List[]}
+              }
+              else{
+                logger.error(s"A member of the class is not a field or abstract method.")
+                System.exit(1)
+              }
+            }
+
+
+          })
+
+          // Binding Fields binding scope to fields
+          thisClassBindingScope("fields") = thisClassBindingScopeFields
+
+          // Binding Abstract Methods binding scope to fields
+          thisClassBindingScope("abstractMethods") = thisClassBindingScopeAbstractMethods
+
+          if(thisClassBindingScopeAbstractMethods.size == 0) {
+            logger.error("No abstract method found for the interface.")
+            accessMap -= (name)
+            System.exit(1)
+          }
+
+          // Inheritance
+          thisClassBindingScope("inheritance") = false
+
+          // IsInterface
+          thisClassBindingScope("isInterface") = true
+
+          // Binding class
+          bindingScopeClass += (name -> thisClassBindingScope)
+          true
       }
 
-    // Inheritance
+    // Inheritance (Class and Abstract Class)
     def Extends(parentClass: String, bindingScopeClass:scala.collection.mutable.Map[BasicType, BasicType] = bindingScopeClass, accessMap:scala.collection.mutable.Map[BasicType, BasicType] = accessMap) : BasicType =
       // First create the child class with fields, constructor and methods
       this.evaluate()
@@ -870,16 +999,30 @@ object aion:
 
     // Inheriting abstract class
 //    AbstractClassDef("parent",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(AbstractMethod("methodParent", List("p1", "p2"))), Protected(AbstractMethod("methodParent2", List("p8", "p9")))).evaluate()
-//
 //    ClassDef("child",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(Method("methodParent", List("p1", "p2"), Difference(Var("p3"), Var("p4")))), Protected(Method("methodParent2", List("p1", "p2"), Union (Var("p3"), Var("p4"))))) Extends "parent"
 //    NewObject("childObject", "child").evaluate()
 //    println(bindingScopeClassInstances)
 
     // Error if all abstract methods are not overridden
-    AbstractClassDef("parent",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(AbstractMethod("methodParent", List("p1", "p2"))), Public(AbstractMethod("methodParent2", List("p8", "p9")))).evaluate()
+//    AbstractClassDef("parent",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(AbstractMethod("methodParent", List("p1", "p2"))), Public(AbstractMethod("methodParent2", List("p8", "p9")))).evaluate()
+//
+//    ClassDef("child",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(Method("methodParent", List("p1", "p2"), Difference(Var("p3"), Var("p4"))))) Extends "parent"
+//    NewObject("childObject", "child").evaluate()
 
-    ClassDef("child",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(Method("methodParent", List("p1", "p2"), Difference(Var("p3"), Var("p4"))))) Extends "parent"
-    NewObject("childObject", "child").evaluate()
+// Error if all abstract methods are not overridden
+//    AbstractClassDef("parent",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(AbstractMethod("methodParent", List("p1", "p2"))), Protected(AbstractMethod("methodParent2", List("p8", "p9")))).evaluate()
+//
+//    ClassDef("child",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(Method("methodParent", List("p1", "p2"), Difference(Var("p3"), Var("p4"))))) Extends "parent"
+//    NewObject("childObject", "child").evaluate()
+
+    // Error - Constructor can not be there in Interface
+//    Interface("parent",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(AbstractMethod("methodParent", List("p1", "p2"))), Protected(Method("methodParent2", List("p8", "p9")))).evaluate()
+
+    // Error - Concrete method can not be there in Interface
+    Interface("parent",  Public(Field("parentField")), Protected(AbstractMethod("methodParent", List("p1", "p2")))).evaluate()
+//    ClassDef("child",  Public(Field("parentField")), Constructor(Assign("parentField", Val(1))), Protected(Method("methodParent", List("p1", "p2"), Difference(Var("p3"), Var("p4"))))) Extends "parent"
+//    NewObject("childObject", "child").evaluate()
+//    println(bindingScopeClass)
 
 
     // WRITE YOUR CODE HERE
