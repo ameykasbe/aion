@@ -390,6 +390,56 @@ The intention of the project is to create a Domain Specific Language (DSL) for u
             <td>
             </td>
         </tr>
+        <tr>
+            <td><b>Conditional Statements</b></td>
+            <td>
+                <b>If(Condition),Then(Operations-if-condition-true),Else(Operations-if-condition-false).evaluate()
+                </b><br>
+                <i>
+                    Examples - <br>
+                    Kindly check Semantics for example
+                </i>
+            </td>
+            <td>
+            </td>
+        </tr>
+        <tr>
+            <td><b>Define an exception</b></td>
+            <td>
+                <b>ExceptionDef(exceptionName, fieldOperation)</b><br>
+                <i>
+                    Examples - <br>
+                    Kindly check Semantics for example
+                </i>
+            </td>
+            <td>
+            </td>
+        </tr>
+        <tr>
+            <td><b>Throw an exception</b></td>
+            <td>
+                <b>Throw(exceptionName, Assign("Reason", reasonOfException))</b><br>
+                <i>
+                    Examples - <br>
+                    Kindly check Semantics for example
+                </i>
+            </td>
+            <td>
+            </td>
+        </tr>
+        <tr>
+            <td><b>Exception Handling</b></td>
+            <td>
+                <b>Try("Exception-Name", Operations*, Catch("Exception-Name", Operations*)).evaluate()
+                </b><br>
+                <i>
+                    Examples - <br>
+                    Kindly check Semantics for example
+                </i>
+            </td>
+            <td>
+            </td>
+        </tr>
     </tbody>
 </table>
 
@@ -815,6 +865,62 @@ ClassDef("childClass6", Constructor(Assign("childField2", Val(2))), Public(Metho
   * Yes, an abstract class can inherit from a concrete class. AION's "Extends" design works in this case. 
 * Can an abstract class/interface be instantiated as anonymous concrete classes?
   * By definition abstract class can not be instantiated. But anonymous class can implement abstract class or interface. 
+
+### Conditional Statements
+* 
+* Syntax
+  ```
+  If(Condition),Then(Operations-if-condition-true),Else(Operations-if-condition-false).evaluate()
+  ```
+* Example
+  ```
+  Assign("set2", Val(Set(1, 2, 3))).evaluate()
+  If(Check(Var("set2"), Val(4)),
+    Then(Delete(Var("set2"), Val(4))),
+    Else(Insert(Var("set2"), Val(4))),
+  ).evaluate()
+  ```
+
+### Define an Exception
+*
+* Syntax
+  ```
+  ExceptionDef(exceptionName, fieldOperation)
+  ```
+* Example
+  ```
+  ExceptionDef("DataNotFoundError", Field("Reason")).evaluate()
+  ```
+
+### Throw an exception
+*
+* Syntax
+  ```
+  Throw(exceptionName, Assign("Reason", reasonOfException))
+  ```
+* Example
+  ```
+  Throw("DataNotFoundError", Assign("Reason", Val("Data is not present.")))
+  ```
+
+### Exception Handling
+*
+* Syntax
+```
+Try("Exception-Name", Operations*, Catch("Exception-Name", Operations*)).evaluate()
+```
+* Example
+```
+ExceptionDef("DataNotFoundError", Field("Reason")).evaluate()
+Assign("set4", Val(Set(1, 2, 3))).evaluate()
+val x = Try("DataNotFoundError",
+  // Throw an error if data is not present.
+  Throw("DataNotFoundError", Assign("Reason", Val("Data is not present."))),
+  Delete(Var("set4"), Val(4)),
+  // Catch
+  Catch("DataNotFoundError", Insert(Var("set4"), Val(100)))
+).evaluate()
+```
 
 ## Files
 ### Source Code
