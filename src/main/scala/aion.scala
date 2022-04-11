@@ -2,6 +2,7 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.mutable.{Map, Set}
 import scala.runtime.BoxedUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 object aion:
   // Creating a private HashMap to store and map variables to values.
@@ -17,6 +18,12 @@ object aion:
 
   // Access map to check access specifiers
   private val accessMap: scala.collection.mutable.Map[BasicType, BasicType] = scala.collection.mutable.Map()
+
+  // Binding scope to store exceptions which is mapped to its definition
+  private val bindingScopeException: scala.collection.mutable.Map[Any, Any] = scala.collection.mutable.Map()
+
+  // Atomic Boolean - used to store if any exception has been caught
+  private val isException: AtomicBoolean = new AtomicBoolean(false);
 
   // Define BasicType
   type BasicType = Any
@@ -58,6 +65,16 @@ object aion:
     case AbstractClassDef(name: String, members: Expression*) // Define an abstract class
     case AbstractMethod(name: String, params: List[BasicType]) // Define an abstract Method
     case Interface(name: String, members: Expression*) // Define an interface
+
+
+    // Homework 4
+    case If(condition: Expression, thenOperations: Expression, elseOperations: Expression) // If statement
+    case Then(operations: Expression*) // Operations to be executed if, "if" condition is true
+    case Else(operations: Expression*) // Operations to be executed if, "if" condition is false
+    case ExceptionDef(name: String, fieldOperation: Expression) // Define an exception
+    case Throw(name: String, operation: Expression) // Throw an exception
+    case Try(name: String, operations: Expression*) // To check for any exception in operations defined in this block
+    case Catch(exceptionName: String, operations: Expression*) // Operations to be executed even if there is an exception
 
     def evaluate(scopeName: String = "global", bindingHM: scala.collection.mutable.Map[BasicType, BasicType] = bindingScope, classNameEval: String = "default"): BasicType =
     // Evaluates an expression. Accepts an argument scopeName, bindingHM = bindingHM representing scope with default value as global.
@@ -903,6 +920,144 @@ object aion:
           // Binding class
           bindingScopeClass += (name -> thisClassBindingScope)
           true
+
+        // Define an exception
+        case ExceptionDef(name, fieldOperation) =>
+          // Initialize a map to store the reason of exception
+          val mapToStoreReason = scala.collection.mutable.Map[Any,Any]()
+
+          // Store the reason into the map
+          val operation = fieldOperation.asInstanceOf[Expression]
+          if(operation.isInstanceOf[Expression.Field]){
+            val fieldName = operation.evaluate()
+            mapToStoreReason += (fieldName -> null)
+          }
+          // Add the exception to the binding scope defined for exceptions
+          bindingScopeException += (name -> mapToStoreReason)
+
+        // Throw an exception
+        case Throw(name, operation) =>
+          val op = operation.asInstanceOf[Expression]
+          op.evaluate(bindingHM = bindingScopeException(name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]])
+
+        // If statement
+        case If(condition, thenOperations, elseOperations) =>
+
+          // Evaluate condition
+          val conditionBool = condition.asInstanceOf[Expression].evaluate()
+
+          // Match condition
+          conditionBool match {
+            // If true
+            case true => thenOperations.asInstanceOf[Expression].evaluate()
+            // In all other cases (false)
+            case _ => elseOperations.asInstanceOf[Expression].evaluate()
+          }
+
+        // Operations to be executed if, "if" condition is true
+        case Then(operations*) =>
+          // Evaluate each operations and return the last operation's result
+          operations.foreach(operation => {
+
+            // Evaluate each operations and return the last operation's result
+            val op = operation.asInstanceOf[Expression];
+
+            // If the operation is a Throw statement, set the isException atomic Boolean as true.
+            if(op.isInstanceOf[Expression.Throw]){
+
+              op.evaluate()
+
+              // Set isException as true
+              isException.set(true)
+            }
+            // If exception was thrown
+            else if (!isException.get()) {
+              val opEval = op.evaluate();
+              if (operation == operations.last) {
+                // Returning the result of the last operation passed to the function.
+                return opEval
+              }
+            }
+          })
+
+        // Operations to be executed if, "if" condition is false
+        case Else(operations*) =>
+          operations.foreach(operation => {
+
+            // Evaluate each operations and return the last operation's result
+            val op = operation.asInstanceOf[Expression];
+
+            // If the operation is a Throw statement, set the isException atomic Boolean as true.
+            if(op.isInstanceOf[Expression.Throw]){
+              op.evaluate()
+
+              // Set isException as true
+              isException.set(true)
+            }
+              // If exception was thrown
+            else if (!isException.get()) {
+              val opEval = op.evaluate();
+              if (operation == operations.last) {
+                // Returning the result of the last operation passed to the function.
+                return opEval
+              }
+            }
+          })
+
+        // To check for any exception in operations defined in this block
+        case Try(name, operations*) =>
+
+          // Set a new flag to check if exception was thrown
+          val flag = new AtomicBoolean(false)
+
+          // For each of operations
+          operations.foreach(i => {
+            val op = i.asInstanceOf[Expression]
+
+            // If the operation is not a statement in which an exception is thrown, simply evaluate the expression
+            if(!isException.get() && !(op.isInstanceOf[Expression.Catch]) && !(op.isInstanceOf[Expression.Throw])){
+              val opEval = op.evaluate()
+            }
+            // If an exception was thrown earlier and the statement is a finally statement, evaluate it
+            else if (isException.get() && (op.isInstanceOf[Expression.Catch])){
+              val opEval = op.evaluate()
+              logger.error("Exception caught. Reason: " + bindingScopeException(name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("Reason"))
+              flag.set(true)
+            }
+
+            // If an exception was thrown, set the isException boolean
+            else if (op.isInstanceOf[Expression.Throw]){
+              op.evaluate()
+              isException.set(true)
+            }
+            else {
+              val opEval = null
+              flag.set(true)
+            }
+          })
+
+          // If exception was caught
+          if(flag.get()){
+            val returnValue = "Exception caught. Reason: " + bindingScopeException(name).asInstanceOf[scala.collection.mutable.Map[BasicType, BasicType]]("Reason")
+            returnValue
+          }
+          else {
+            true
+          }
+
+        // Operations to be executed even if there is an exception
+        case Catch(exceptionName, operations*) =>
+          // For each operation
+          operations.foreach(operation => {
+            val op = operation.asInstanceOf[Expression]
+            val opEval = op.evaluate()
+            if (operation == operations.last) {
+              // Return the evaluation of the last operation
+              isException.set(false)
+              return opEval
+            }
+          })
+
       }
 
     // Inheritance (Class and Abstract Class)
@@ -1078,6 +1233,23 @@ object aion:
     // Main function
     // Importing all expressions
     import Expression.*
+
+
+
+    ExceptionDef("DataNotFoundException", Field("Reason")).evaluate()
+    Try("DataNotFoundException",
+      Assign("set5", Val(Set(1, 2, 3, 4))),
+      If(Check(Var("set5"), Val(100)),
+        Then(Delete(Var("var5"), Val(100))),
+        Else(Throw("DataNotFoundException", Assign("Reason",Val("Data 100 was not found."))))
+      ),
+      Insert(Var("set5"), Val(300)),
+      Catch("DataNotFoundException", Insert(Var("set5"), Val(5)))
+    ).evaluate()
+    println(Var("set5").evaluate())
+
+
+
 
     // Error - no abstract methods
 //    AbstractClassDef("class1", Public(Field("field1")), Constructor(Assign("field1", Val(1))), Public(Method("method1", List("p1", "p2"), Union(Var("p1"), Var("p2"))))).evaluate()

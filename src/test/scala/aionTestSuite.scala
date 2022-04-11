@@ -282,4 +282,89 @@ class aionTestSuite extends AnyFunSpec{
     }
   }
 
+
+  // Homework 4
+  // Test case 26
+  describe("If Else - if condition check") {
+    it("IF condition's operations should be executed") {
+      Assign("set1", Val(Set(1, 2, 3))).evaluate()
+      If(Check(Var("set1"), Val(3)),
+        Then(Delete(Var("set1"), Val(3))),
+        Else(Throw("DataNotFoundError", Assign("Reason", Val("Data 4 is not present")))),
+      ).evaluate()
+      val result = Var("set1").evaluate()
+      assert(result == Set(1,2))
+
+    }
+  }
+
+  // Test case 27
+  describe("If Else - else condition check") {
+    it("ELSE condition's operations should be executed") {
+      Assign("set2", Val(Set(1, 2, 3))).evaluate()
+      If(Check(Var("set2"), Val(4)),
+        Then(Delete(Var("set2"), Val(4))),
+        Else(Insert(Var("set2"), Val(4))),
+      ).evaluate()
+      val result = Var("set2").evaluate()
+      assert(result == Set(1,2,3,4))
+    }
+  }
+
+  // Test case 28
+  describe("Exception handling 1") {
+    it("Exception should be raised") {
+
+      ExceptionDef("DataNotFoundError", Field("Reason")).evaluate()
+      val x = Try("DataNotFoundError",
+        Assign("set3", Val(Set(1, 2, 3))),
+        // Throw an error if data is not present.
+        Throw("DataNotFoundError", Assign("Reason", Val("Data is not present."))),
+        Delete(Var("set3"), Val(4)),
+      ).evaluate()
+      assert(x == "Exception caught. Reason: Data is not present.")
+    }
+  }
+
+  // Test case 29
+  describe("Exception handling 2") {
+    it("Exception should be raised and catch block should be executed") {
+
+      ExceptionDef("DataNotFoundError", Field("Reason")).evaluate()
+      Assign("set4", Val(Set(1, 2, 3))).evaluate()
+      val x = Try("DataNotFoundError",
+        // Throw an error if data is not present.
+        Throw("DataNotFoundError", Assign("Reason", Val("Data is not present."))),
+        Delete(Var("set4"), Val(4)),
+        // Catch
+        Catch("DataNotFoundError", Insert(Var("set4"), Val(100)))
+      ).evaluate()
+      assert(x == "Exception caught. Reason: Data is not present.")
+      assert(Var("set4").evaluate() == Set(1,2,3,100))
+    }
+  }
+
+  // Test case 30
+  describe("Exception handling and if else block") {
+    it("Exception should be raised according to if else block") {
+
+      ExceptionDef("DataNotFoundException", Field("Reason")).evaluate()
+      val x = Try("DataNotFoundException",
+        Assign("set5", Val(Set(1, 2, 3, 4))),
+        If(Check(Var("set5"), Val(100)),
+          Then(Delete(Var("var5"), Val(100))),
+          Else(Throw("DataNotFoundException", Assign("Reason",Val("Data 100 was not found."))))
+        ),
+        Insert(Var("set5"), Val(300)),
+        Catch("DataNotFoundException", Insert(Var("set5"), Val(5)))
+      ).evaluate()
+      assert(x == "Exception caught. Reason: Data 100 was not found.")
+      assert(Var("set5").evaluate() == Set(1,2,3,4,5))
+
+    }
+  }
+
+
+
+
 }
