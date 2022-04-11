@@ -867,7 +867,10 @@ ClassDef("childClass6", Constructor(Assign("childField2", Val(2))), Public(Metho
   * By definition abstract class can not be instantiated. But anonymous class can implement abstract class or interface. 
 
 ### Conditional Statements
-* 
+* Conditional statements makes decisions based on certain conditions.
+* Decisions are made if the pre-stated conditions are true or false.
+* In AION, if the condition present in the "If" condition is true, then, operations present only in "Then" clause are executed.
+* If not, then the operations present only in "Else" clause are executed.
 * Syntax
   ```
   If(Condition),Then(Operations-if-condition-true),Else(Operations-if-condition-false).evaluate()
@@ -882,7 +885,9 @@ ClassDef("childClass6", Constructor(Assign("childField2", Val(2))), Public(Metho
   ```
 
 ### Define an Exception
-*
+* This defines an exception in the exception binding.
+* User can define own exceptions using `ExceptionDef`.
+* You need to pass a field "Reason" as well.
 * Syntax
   ```
   ExceptionDef(exceptionName, fieldOperation)
@@ -893,7 +898,7 @@ ClassDef("childClass6", Constructor(Assign("childField2", Val(2))), Public(Metho
   ```
 
 ### Throw an exception
-*
+* To throw an exception use "Throw" clause.
 * Syntax
   ```
   Throw(exceptionName, Assign("Reason", reasonOfException))
@@ -904,7 +909,10 @@ ClassDef("childClass6", Constructor(Assign("childField2", Val(2))), Public(Metho
   ```
 
 ### Exception Handling
-*
+* This is a process of responding to the occurrence of exceptions – anomalous or exceptional conditions requiring special processing – during the execution of a program. [Source](https://en.wikipedia.org/wiki/Exception_handling)
+* Exception Handling is a mechanism to handle runtime errors. [Source](https://www.javatpoint.com/exception-handling-in-java)
+* The "try" keyword is used to specify a block where we should place an exception code. It means we can't use try block alone. The try block must be followed by either catch or finally. [Source](https://www.javatpoint.com/exception-handling-in-java)
+* The "catch" block is used to handle the exception. It must be preceded by try block which means we can't use catch block alone. [Source](https://www.javatpoint.com/exception-handling-in-java)
 * Syntax
 ```
 Try("Exception-Name", Operations*, Catch("Exception-Name", Operations*)).evaluate()
