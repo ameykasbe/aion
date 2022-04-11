@@ -961,4 +961,12 @@ val x = Try("DataNotFoundError",
 3. Execute - <br>
 `sbt clean compile test`
 
+Note: If java.io.IOException is caught. Enter 'y' to create a new server.
+```
+sbt thinks that server is already booting because of this exception:
+java.io.IOException: Could not create lock for \\.\pipe\sbt-load938732335309032081_lock, error 5
+Create a new server? y/n (default y)
+```
+~ Enter: y
+
 
