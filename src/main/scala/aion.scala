@@ -31,6 +31,14 @@ object aion:
   // Creating a logger instance to log events
   val logger: Logger = LoggerFactory.getLogger(this.getClass.getSimpleName)
 
+  trait Monadics:
+    def map(function: Expression => BasicType): BasicType
+
+  case class MonadicsOptimize(inputExp: Expression) extends Monadics {
+    @Override
+    def map(function: Expression => BasicType) = function(inputExp)
+  }
+
   enum Expression:
     // Expression enum. Representing all the functionalities of DSL - Constant, Variable, expressions etc.
     // In the documentation and comments, "expression" denotes a constant, variable or any other expression from the Expression enum
@@ -1272,14 +1280,95 @@ object aion:
         case AbstractMethod(name, params) => name
       }
 
+
+
   @main def runAion(): Unit =
     // Main function
     // Importing all expressions
     import Expression.*
 
-//    Assign("Set1", Val(Set(1, 2, 3))).evaluate()
+    def optimizedEvaluate(input: Expression) = {
+      input.asInstanceOf[Expression] match {
+        case Val(name) => Val(name)
+        case Var(name) =>
+          val output = Var(name).evaluate()
+          val toRet = output match {
+            case c1: Var => Var(name)
+            case c2: BasicType => Val(name)
+          }
+          toRet
+
+        case Union(x, y) =>
+          val first = x.evaluate()
+          val second = y.evaluate()
+          if (first == second || second == scala.collection.mutable.Set()) {
+            first
+          }
+          else if (first == scala.collection.mutable.Set()) {
+            second
+          }
+          else {
+            Union(x, y).evaluate()
+          }
+
+        case Intersect(x,y) =>
+          val first = x.evaluate()
+          val second = y.evaluate()
+          if(first==second){
+            first
+          }
+          else if(first.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
+            second
+          }
+          else if(second.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
+            first
+          }
+          else{
+            Intersect(x,y).evaluate()
+          }
+        case Difference(x,y) =>
+          val first = x.evaluate()
+          val second = y.evaluate()
+          if(first==second){
+            scala.collection.mutable.Set()
+          }
+          else if(first.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
+            scala.collection.mutable.Set()
+          }
+          else if(second.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
+            first
+          }
+          else{
+            Difference(x,y).evaluate()
+          }
+
+        case SymmetricDifference(x,y) =>
+          val first = x.evaluate()
+          val second = y.evaluate()
+          if(first==second){
+            scala.collection.mutable.Set()
+          }
+          else if(first.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
+            second
+          }
+          else if(second.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
+            first
+          }
+          else{
+            SymmetricDifference(x,y).evaluate()
+          }
+      }
+    }
+
+    Assign("Set1", Val(Set(1, 2, 3))).evaluate()
     Assign("Set2", Val(Set(2,3,4))).evaluate()
-    println(SymmetricDifference(Var("Set1"), Var("Set2")).evaluate())
+//    println(SymmetricDifference(Var("Set1"), Var("Set2")).evaluate())
+
+    println(MonadicsOptimize(Union(Var("Set1"), Var("Set2"))).map(optimizedEvaluate))
+
+
+
+
 
     // WRITE YOUR CODE HERE
     // TEST SUITE IS PRESENT IN aionTestSuite.scala
