@@ -980,7 +980,7 @@ val x = Try("DataNotFoundError",
     
 ### Optimization
 * Aim is to optimize evaluation of expressions in AION.
-* There are certain axioms in Set theory which reduces the computation.
+* There are certain axioms in Set theory which reduces the computation. Using these axioms, expression evaluation has been optimized.
 * Syntax
   ```
   MonadicsOptimize(Expression(Inputs*)).map(optimizationFunction)
