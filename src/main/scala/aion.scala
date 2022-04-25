@@ -34,10 +34,12 @@ object aion:
   trait Monadics:
     def map(function: Expression => BasicType): BasicType
 
-  case class MonadicsOptimize(inputExp: Expression) extends Monadics {
+  case class MonadicsOptimize(inputExp: Expression) extends Monadics:
+    // Monadic function map
+    // Accepts optimization function
     @Override
     def map(function: Expression => BasicType) = function(inputExp)
-  }
+
 
   enum Expression:
     // Expression enum. Representing all the functionalities of DSL - Constant, Variable, expressions etc.
@@ -1287,84 +1289,121 @@ object aion:
     // Importing all expressions
     import Expression.*
 
+    // OptimizationFunction
     def optimizedEvaluate(input: Expression) = {
-      input.asInstanceOf[Expression] match {
+      val emptySet = scala.collection.mutable.Set()
+      input match {
+        // A constant
         case Val(name) => Val(name)
+
+        // A variable
         case Var(name) =>
-          val output = Var(name).evaluate()
-          val toRet = output match {
-            case c1: Var => Var(name)
-            case c2: BasicType => Val(name)
+          val nameEval = Var(name).evaluate()
+          val output = nameEval match {
+            // If evaluated expression is a variable
+            case x: Var => Var(name)
+            // If evaluated expression is a AION value
+            case y: BasicType => Val(name)
           }
-          toRet
+          output
 
-        case Union(x, y) =>
-          val first = x.evaluate()
-          val second = y.evaluate()
-          if (first == second || second == scala.collection.mutable.Set()) {
-            first
+        // Returns the union of sets with optimization techniques
+        case Union(set1, set2) =>
+          val set1Evaluated = set1.evaluate()
+          val set2Evaluated = set2.evaluate()
+
+          // If both sets are same, return one of them
+          if (set1Evaluated == set2Evaluated || set2Evaluated == emptySet) {
+            set1Evaluated
           }
-          else if (first == scala.collection.mutable.Set()) {
-            second
+          // If one of the set is empty, return the other
+          else if (set1Evaluated == emptySet) {
+            set2Evaluated
           }
+
+          // If one of the set is empty, return the other
+          else if (set2Evaluated == emptySet) {
+            set1Evaluated
+          }
+
+          // If no condition is satisfied, evaluate the expression normally
           else {
-            Union(x, y).evaluate()
+            Union(set1, set2).evaluate()
           }
 
-        case Intersect(x,y) =>
-          val first = x.evaluate()
-          val second = y.evaluate()
-          if(first==second){
-            first
+        // Returns the intersection of sets with optimization techniques
+        case Intersect(set1, set2) =>
+          val set1Evaluated = set1.evaluate()
+          val set2Evaluated = set2.evaluate()
+
+          // If both sets are same, return one of them
+          if(set1Evaluated == set2Evaluated){
+            set1Evaluated
           }
-          else if(first.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
-            second
+          // If one of the set is empty, return empty set
+          else if(set1Evaluated.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
+            emptySet
           }
-          else if(second.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
-            first
+          // If one of the sets is empty, return empty set
+          else if(set2Evaluated.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
+            emptySet
           }
+          // If no condition is satisfied, evaluate the expression normally
           else{
-            Intersect(x,y).evaluate()
-          }
-        case Difference(x,y) =>
-          val first = x.evaluate()
-          val second = y.evaluate()
-          if(first==second){
-            scala.collection.mutable.Set()
-          }
-          else if(first.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
-            scala.collection.mutable.Set()
-          }
-          else if(second.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
-            first
-          }
-          else{
-            Difference(x,y).evaluate()
+            Intersect(set1, set2).evaluate()
           }
 
-        case SymmetricDifference(x,y) =>
-          val first = x.evaluate()
-          val second = y.evaluate()
-          if(first==second){
-            scala.collection.mutable.Set()
+        // Returns the set difference of sets with optimization techniques
+        case Difference(set1, set2) =>
+          val set1Evaluated = set1.evaluate()
+          val set2Evaluated = set2.evaluate()
+
+          // If both sets are same, return an empty set
+          if(set1Evaluated == set2Evaluated){
+            emptySet
           }
-          else if(first.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
-            second
+          // If first set is empty, return empty set
+          else if(set1Evaluated.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
+            emptySet
           }
-          else if(second.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
-            first
+          // If second set is empty, return the first set
+          else if(set2Evaluated.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
+            set1Evaluated
           }
+          // If no condition is satisfied, evaluate the expression normally
           else{
-            SymmetricDifference(x,y).evaluate()
+            Difference(set1, set2).evaluate()
+          }
+
+        // Returns the symmetric difference of sets with optimization techniques
+        case SymmetricDifference(set1, set2) =>
+          val set1Evaluated = set1.evaluate()
+          val set2Evaluated = set2.evaluate()
+
+          // If both sets are same, return an empty set
+          if(set1Evaluated == set2Evaluated){
+            emptySet
+          }
+          // If first set is empty, return the second set
+          else if(set1Evaluated.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
+            set2Evaluated
+          }
+          // If second set is empty, return the first set
+          else if(set2Evaluated.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
+            set1Evaluated
+          }
+          // If no condition is satisfied, evaluate the expression normally
+          else{
+            SymmetricDifference(set1, set2).evaluate()
           }
       }
     }
 
     Assign("Set1", Val(Set(1, 2, 3))).evaluate()
-    Assign("Set2", Val(Set(2,3,4))).evaluate()
+    Assign("Set2", Val(Set())).evaluate()
 //    println(SymmetricDifference(Var("Set1"), Var("Set2")).evaluate())
 
-    println(MonadicsOptimize(Union(Var("Set1"), Var("Set2"))).map(optimizedEvaluate))
+    println(MonadicsOptimize(Difference(Var("Set2"), Var("Set1"))).map(optimizedEvaluate))
 
 
 
