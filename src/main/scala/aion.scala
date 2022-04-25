@@ -1398,12 +1398,12 @@ object aion:
           }
       }
     }
+//
+//    Assign("Set1", Val(Set(1, 2, 3))).evaluate()
+//    Assign("Set2", Val(Set())).evaluate()
+    println(Union(Var("Set1"), Var("Set2")).evaluate())
 
-    Assign("Set1", Val(Set(1, 2, 3))).evaluate()
-    Assign("Set2", Val(Set())).evaluate()
-//    println(SymmetricDifference(Var("Set1"), Var("Set2")).evaluate())
-
-    println(MonadicsOptimize(Difference(Var("Set2"), Var("Set1"))).map(optimizedEvaluate))
+//    println(MonadicsOptimize(Difference(Var("Set2"), Var("Set1"))).map(optimizedEvaluate))
 
 
 

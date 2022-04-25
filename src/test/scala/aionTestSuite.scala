@@ -1,6 +1,6 @@
 import org.scalatest.funspec.AnyFunSpec
 import aion.Expression.*
-import aion.{BasicType, bindingScopeClassInstances}
+import aion.{BasicType, Expression, MonadicsOptimize, bindingScopeClassInstances}
 
 import scala.collection.mutable.Set
 
@@ -361,6 +361,249 @@ class aionTestSuite extends AnyFunSpec{
       assert(x == "Exception caught. Reason: Data 100 was not found.")
       assert(Var("set5").evaluate() == Set(1,2,3,4,5))
 
+    }
+  }
+
+  //// Homework 5
+
+  // OptimizationFunction
+  def optimizedEvaluate(input: Expression) = {
+    val emptySet = scala.collection.mutable.Set()
+    input match {
+      // A constant
+      case Val(name) => Val(name)
+
+      // A variable
+      case Var(name) =>
+        val nameEval = Var(name).evaluate()
+        val output = nameEval match {
+          // If evaluated expression is a variable
+          case x: Var => Var(name)
+          // If evaluated expression is a AION value
+          case y: BasicType => Val(name)
+        }
+        output
+
+      // Returns the union of sets with optimization techniques
+      case Union(set1, set2) =>
+        val set1Evaluated = set1.evaluate()
+        val set2Evaluated = set2.evaluate()
+
+        // If both sets are same, return one of them
+        if (set1Evaluated == set2Evaluated || set2Evaluated == emptySet) {
+          set1Evaluated
+        }
+        // If one of the set is empty, return the other
+        else if (set1Evaluated == emptySet) {
+          set2Evaluated
+        }
+
+        // If one of the set is empty, return the other
+        else if (set2Evaluated == emptySet) {
+          set1Evaluated
+        }
+
+        // If no condition is satisfied, evaluate the expression normally
+        else {
+          Union(set1, set2).evaluate()
+        }
+
+      // Returns the intersection of sets with optimization techniques
+      case Intersect(set1, set2) =>
+        val set1Evaluated = set1.evaluate()
+        val set2Evaluated = set2.evaluate()
+
+        // If both sets are same, return one of them
+        if(set1Evaluated == set2Evaluated){
+          set1Evaluated
+        }
+        // If one of the set is empty, return empty set
+        else if(set1Evaluated.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
+          emptySet
+        }
+        // If one of the sets is empty, return empty set
+        else if(set2Evaluated.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
+          emptySet
+        }
+        // If no condition is satisfied, evaluate the expression normally
+        else{
+          Intersect(set1, set2).evaluate()
+        }
+
+      // Returns the set difference of sets with optimization techniques
+      case Difference(set1, set2) =>
+        val set1Evaluated = set1.evaluate()
+        val set2Evaluated = set2.evaluate()
+
+        // If both sets are same, return an empty set
+        if(set1Evaluated == set2Evaluated){
+          emptySet
+        }
+        // If first set is empty, return empty set
+        else if(set1Evaluated.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
+          emptySet
+        }
+        // If second set is empty, return the first set
+        else if(set2Evaluated.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
+          set1Evaluated
+        }
+        // If no condition is satisfied, evaluate the expression normally
+        else{
+          Difference(set1, set2).evaluate()
+        }
+
+      // Returns the symmetric difference of sets with optimization techniques
+      case SymmetricDifference(set1, set2) =>
+        val set1Evaluated = set1.evaluate()
+        val set2Evaluated = set2.evaluate()
+
+        // If both sets are same, return an empty set
+        if(set1Evaluated == set2Evaluated){
+          emptySet
+        }
+        // If first set is empty, return the second set
+        else if(set1Evaluated.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
+          set2Evaluated
+        }
+        // If second set is empty, return the first set
+        else if(set2Evaluated.asInstanceOf[scala.collection.mutable.Set[BasicType]].isEmpty){
+          set1Evaluated
+        }
+        // If no condition is satisfied, evaluate the expression normally
+        else{
+          SymmetricDifference(set1, set2).evaluate()
+        }
+    }
+  }
+
+  // Test Case 31
+  describe("Optimized Union") {
+    it("should return correct union of sets when no optimization is possible") {
+      Assign("Set1", Val(Set())).evaluate()
+      Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate()
+      Assign("Set2", Val(Set())).evaluate()
+      Insert(Var("Set2"), Val(2), Val(3), Val(4)).evaluate()
+      assert(MonadicsOptimize(Union(Var("Set2"), Var("Set1"))).map(optimizedEvaluate) == Set(1, 2, 3, 4))
+    }
+
+    it("should return correct and optimized union of sets when both sets are similar") {
+      Assign("Set1", Val(Set())).evaluate()
+      Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate()
+      Assign("Set2", Val(Set())).evaluate()
+      Insert(Var("Set2"), Val(1), Val(2), Val(3)).evaluate()
+      assert(MonadicsOptimize(Union(Var("Set1"), Var("Set2"))).map(optimizedEvaluate) == Set(1, 2, 3))
+    }
+
+    it("should return correct and optimized union of sets when one set is empty") {
+      Assign("Set1", Val(Set())).evaluate()
+      Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate()
+      Assign("Set2", Val(Set())).evaluate()
+      assert(MonadicsOptimize(Union(Var("Set1"), Var("Set2"))).map(optimizedEvaluate) == Set(1, 2, 3))
+    }
+  }
+
+  // Test Case 32
+  describe("Optimized  Intersect") {
+    it("should return correct intersect of sets when no optimization is possible") {
+      Assign("Set1", Val(Set())).evaluate()
+      Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate()
+      Assign("Set2", Val(Set())).evaluate()
+      Insert(Var("Set2"), Val(2), Val(3), Val(4)).evaluate()
+      assert(MonadicsOptimize(Intersect(Var("Set1"), Var("Set2"))).map(optimizedEvaluate) == Set(2, 3))
+    }
+    it("should return correct and optimized intersect of sets when both sets are similar") {
+      Assign("Set1", Val(Set())).evaluate()
+      Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate()
+      Assign("Set2", Val(Set())).evaluate()
+      Insert(Var("Set2"), Val(1), Val(2), Val(3)).evaluate()
+      assert(MonadicsOptimize(Intersect(Var("Set1"), Var("Set2"))).map(optimizedEvaluate) == Set(1, 2, 3))
+    }
+
+    it("should return correct and optimized intersect of sets when one set is empty") {
+      Assign("Set1", Val(Set())).evaluate()
+      Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate()
+      Assign("Set2", Val(Set())).evaluate()
+      assert(MonadicsOptimize(Intersect(Var("Set1"), Var("Set2"))).map(optimizedEvaluate) == Set())
+    }
+  }
+
+  // Test Case 33
+  describe("Optimized Set Difference") {
+    it("should return correct set difference of sets when no optimization is possible") {
+      Assign("Set1", Val(Set())).evaluate()
+      Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate()
+      Assign("Set2", Val(Set())).evaluate()
+      Insert(Var("Set2"), Val(2), Val(3), Val(4)).evaluate()
+      assert(MonadicsOptimize(Difference(Var("Set1"), Var("Set2"))).map(optimizedEvaluate) == Set(1))
+    }
+
+    it("should return correct and optimized difference of sets when both sets are similar") {
+      Assign("Set1", Val(Set())).evaluate()
+      Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate()
+      Assign("Set2", Val(Set())).evaluate()
+      Insert(Var("Set2"), Val(1), Val(2), Val(3)).evaluate()
+      assert(MonadicsOptimize(Difference(Var("Set1"), Var("Set2"))).map(optimizedEvaluate) == Set())
+    }
+
+    it("should return correct and optimized difference of sets when second set is empty") {
+      Assign("Set1", Val(Set())).evaluate()
+      Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate()
+      Assign("Set2", Val(Set())).evaluate()
+      assert(MonadicsOptimize(Difference(Var("Set1"), Var("Set2"))).map(optimizedEvaluate) == Set(1, 2, 3))
+    }
+
+    it("should return correct and optimized difference of sets when first set is empty") {
+      Assign("Set1", Val(Set())).evaluate()
+      Assign("Set2", Val(Set())).evaluate()
+      Insert(Var("Set2"), Val(1), Val(2), Val(3)).evaluate()
+      assert(MonadicsOptimize(Difference(Var("Set1"), Var("Set2"))).map(optimizedEvaluate) == Set())
+    }
+
+  }
+
+  // Test Case 34
+  describe("Optimized Symmetric Difference") {
+    it("should return correct set symmetric difference of sets when no optimization is possible") {
+      Assign("Set1", Val(Set())).evaluate()
+      Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate()
+      Assign("Set2", Val(Set())).evaluate()
+      Insert(Var("Set2"), Val(2), Val(3), Val(4)).evaluate()
+      assert(MonadicsOptimize(SymmetricDifference(Var("Set1"), Var("Set2"))).map(optimizedEvaluate) == Set(1, 4))
+    }
+
+    it("should return correct and optimized symmetric difference of sets when both sets are similar") {
+      Assign("Set1", Val(Set())).evaluate()
+      Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate()
+      Assign("Set2", Val(Set())).evaluate()
+      Insert(Var("Set2"), Val(1), Val(2), Val(3)).evaluate()
+      assert(MonadicsOptimize(SymmetricDifference(Var("Set1"), Var("Set2"))).map(optimizedEvaluate) == Set())
+    }
+
+    it("should return correct and optimized symmetric difference of sets when second set is empty") {
+      Assign("Set1", Val(Set())).evaluate()
+      Insert(Var("Set1"), Val(1), Val(2), Val(3)).evaluate()
+      Assign("Set2", Val(Set())).evaluate()
+      assert(MonadicsOptimize(SymmetricDifference(Var("Set1"), Var("Set2"))).map(optimizedEvaluate) == Set(1, 2, 3))
+    }
+
+    it("should return correct and optimized symmetric difference of sets when first set is empty") {
+      Assign("Set1", Val(Set())).evaluate()
+      Assign("Set2", Val(Set())).evaluate()
+      Insert(Var("Set2"), Val(1), Val(2), Val(3)).evaluate()
+      assert(MonadicsOptimize(SymmetricDifference(Var("Set1"), Var("Set2"))).map(optimizedEvaluate) == Set(1, 2, 3))
+    }
+  }
+
+
+  // Test Case 35
+  describe("Partial Evaluation") {
+    it("should return partially evaluated union of sets when both sets are not defined") {
+      assert(Union(Var("Set10"), Var("Set20")).evaluate() == Union(Var("Set10"),Var("Set20")))
+    }
+    it("should return partially evaluated union of sets when one of the sets are not defined") {
+      Assign("Set2", Val(Set())).evaluate()
+      Insert(Var("Set2"), Val(1), Val(2), Val(3)).evaluate()
+      assert(Union(Var("Set11"), Var("Set2")).evaluate() == Union(Var("Set11"),Val(Set(1,2,3))))
     }
   }
 

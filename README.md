@@ -440,6 +440,28 @@ The intention of the project is to create a Domain Specific Language (DSL) for u
             <td>
             </td>
         </tr>
+        <tr>
+            <td><b>Partial Evaluation</b></td>
+            <td>
+                <b>No Syntax change as previously used
+                </b>
+            </td>
+            <td>
+            </td>
+        </tr>
+        <tr>
+            <td><b>Optimization Function</b></td>
+            <td>
+                <b>MonadicsOptimize(Expression(Inputs*)).map(optimizationFunction)
+                </b><br>
+                <i>
+                    Examples - <br>
+                    Kindly check Semantics for example
+                </i>
+            </td>
+            <td>
+            </td>
+        </tr>
     </tbody>
 </table>
 
@@ -929,6 +951,88 @@ val x = Try("DataNotFoundError",
   Catch("DataNotFoundError", Insert(Var("set4"), Val(100)))
 ).evaluate()
 ```
+
+
+### Partial Evaluation
+* Syntax
+  * No change in syntax.
+* Allow undefined variables during evaluation by preserving syntactical phrases if they cannot be evaluated completely.
+* If any variable is not defined, instead of raising an exception, return the expression with variable intact without evaluating.
+
+* Examples
+  * partially evaluated union of sets when one of the sets are not defined
+    ```
+    Assign("Set2", Val(Set(1, 2, 3))).evaluate()
+    Union(Var("Set1"), Var("Set2")).evaluate() 
+    ```
+    Output
+    ```
+    Union(Var("Set1"),Val(Set(1,2,3))))
+    ```
+  * should return partially evaluated union of sets when both sets are not defined
+    ```
+    Union(Var("Set1"), Var("Set2")).evaluate() 
+    ```
+    Output
+    ```
+    Union(Var("Set1"),Var("Set2")))
+    ```
+    
+### Optimization
+* Aim is to optimize evaluation of expressions in AION.
+* There are certain axioms in Set theory which reduces the computation.
+* Syntax
+  ```
+  MonadicsOptimize(Expression(Inputs*)).map(optimizationFunction)
+  ```
+  Example
+  ```
+  MonadicsOptimize(Difference(Var("Set1"), Var("Set2"))).map(optimizedEvaluate)
+  ```
+  
+`* Note that there was no complete evaluation involved in the below cases.`
+* Other Examples -
+  * Union of two identical sets is equal to any one of the two sets.
+  ```
+  Assign("Set1", Val(Set(1, 2, 3))).evaluate()
+  Assign("Set2", Val(Set(1, 2, 3))).evaluate()
+  MonadicsOptimize(Union(Var("Set1"), Var("Set2"))).map(optimizedEvaluate)
+  ```
+  Output
+  ```
+  Set(1, 2, 3)
+  ```
+  * Union of one set with empty set is the non-empty set.
+  ```
+  Assign("Set1", Val(Set(1, 2, 3))).evaluate()
+  Assign("Set2", Val(Set())).evaluate()
+  MonadicsOptimize(Union(Var("Set1"), Var("Set2"))).map(optimizedEvaluate)
+  ```
+  Output
+  ```
+  Set(1, 2, 3)
+  ```
+  * Intersection of one set with empty set is an empty set.
+  ```
+  Assign("Set1", Val(Set(1, 2, 3))).evaluate()
+  Assign("Set2", Val(Set())).evaluate()
+  MonadicsOptimize(Intersect(Var("Set1"), Var("Set2"))).map(optimizedEvaluate)
+  ```
+  Output
+  ```
+  Set()
+  ```
+  * Difference of one set from empty set is an empty set.
+  ```
+  Assign("Set1", Val(Set())).evaluate()
+  Assign("Set2", Val(Set(1, 2, 3))).evaluate()
+  MonadicsOptimize(Difference(Var("Set1"), Var("Set2"))).map(optimizedEvaluate)
+  ```
+  Output
+  ```
+  Set()
+  ```
+      
 
 ## Files
 ### Source Code
