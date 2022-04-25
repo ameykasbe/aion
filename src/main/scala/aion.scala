@@ -98,8 +98,7 @@ object aion:
               bindingHM(name)
             }
             else {
-              logger.error(s"Name $name not assigned.")
-              System.exit(1)
+              Var(name)
             }
           }
           else{
@@ -190,6 +189,16 @@ object aion:
           val set1Eval = setName1.evaluate(scopeName, bindingHM = bindingHM)
           val set2Eval = setName2.evaluate(scopeName, bindingHM = bindingHM)
 
+          if (set1Eval.isInstanceOf[Expression] && set2Eval.isInstanceOf[Expression]) {
+            return Union(setName1, setName2)
+          }
+          else if (set1Eval.isInstanceOf[Expression]) {
+            return Union(set1Eval.asInstanceOf[Expression], Val(set2Eval))
+          }
+          else if (set2Eval.isInstanceOf[Expression]) {
+            return Union(Val(set1Eval), set2Eval.asInstanceOf[Expression])
+          }
+
           if (!set1Eval.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName1 is not a set.")
             System.exit(1)
@@ -211,6 +220,17 @@ object aion:
         case Intersect(setName1, setName2) =>
           val set1Eval = setName1.evaluate(scopeName, bindingHM = bindingHM)
           val set2Eval = setName2.evaluate(scopeName, bindingHM = bindingHM)
+
+          if (set1Eval.isInstanceOf[Expression] && set2Eval.isInstanceOf[Expression]) {
+            return Intersect(setName1, setName2)
+          }
+          else if (set1Eval.isInstanceOf[Expression]) {
+            return Intersect(set1Eval.asInstanceOf[Expression], Val(set2Eval))
+          }
+          else if (set2Eval.isInstanceOf[Expression]) {
+            return Intersect(Val(set1Eval), set2Eval.asInstanceOf[Expression])
+          }
+
           if (!set1Eval.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName1 is not a set.")
             System.exit(1)
@@ -232,6 +252,17 @@ object aion:
         case Difference(setName1, setName2) =>
           val set1Eval = setName1.evaluate(scopeName, bindingHM = bindingHM)
           val set2Eval = setName2.evaluate(scopeName, bindingHM = bindingHM)
+
+          if (set1Eval.isInstanceOf[Expression] && set2Eval.isInstanceOf[Expression]) {
+            return Difference(setName1, setName2)
+          }
+          else if (set1Eval.isInstanceOf[Expression]) {
+            return Difference(set1Eval.asInstanceOf[Expression], Val(set2Eval))
+          }
+          else if (set2Eval.isInstanceOf[Expression]) {
+            return Difference(Val(set1Eval), set2Eval.asInstanceOf[Expression])
+          }
+
           if (!set1Eval.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName1 is not a set.")
             System.exit(1)
@@ -263,6 +294,18 @@ object aion:
         case CrossProduct(setName1: Expression, setName2: Expression) =>
           val set1Eval = setName1.evaluate(scopeName, bindingHM = bindingHM)
           val set2Eval = setName2.evaluate(scopeName, bindingHM = bindingHM)
+
+          if (set1Eval.isInstanceOf[Expression] && set2Eval.isInstanceOf[Expression]) {
+            return CrossProduct(setName1, setName2)
+          }
+          else if (set1Eval.isInstanceOf[Expression]) {
+            return CrossProduct(set1Eval.asInstanceOf[Expression], Val(set2Eval))
+          }
+          else if (set2Eval.isInstanceOf[Expression]) {
+            return CrossProduct(Val(set1Eval), set2Eval.asInstanceOf[Expression])
+          }
+
+
           if (!set1Eval.isInstanceOf[scala.collection.mutable.Set[Any]]) {
             logger.error(s"Name $setName1 is not a set.")
             System.exit(1)
@@ -1233,6 +1276,10 @@ object aion:
     // Main function
     // Importing all expressions
     import Expression.*
+
+//    Assign("Set1", Val(Set(1, 2, 3))).evaluate()
+    Assign("Set2", Val(Set(2,3,4))).evaluate()
+    println(SymmetricDifference(Var("Set1"), Var("Set2")).evaluate())
 
     // WRITE YOUR CODE HERE
     // TEST SUITE IS PRESENT IN aionTestSuite.scala
