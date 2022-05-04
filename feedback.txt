@@ -33,4 +33,8 @@ Marks deducted: 0%
 Comments: N/A
 
 Marks for Homework 2: 10%
+Marks for Homework 3: 10%
+Marks for Homework 4: 10%
+Marks for Homework 5: 10%
+
 
